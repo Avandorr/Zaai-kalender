@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zaaikalender">
+<meta name="theme-color" content="#0a1a0a">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230d1f0d'/%3E%3Ctext x='90' y='125' font-size='100' text-anchor='middle'%3E🌱%3C/text%3E%3C/svg%3E">
+<title>🌱 Zaaikalender</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" onerror="console.log('fonts offline, using fallback')">
+<style>
+  :root {
+    --bg: #0a1a0a;
+    --bg2: #111e11;
+    --bg3: #162016;
+    --bg4: #1c2e1c;
+    --border: #2a3e2a;
+    --border2: #3a5a3a;
+    --text: #ddeedd;
+    --text2: #8ab08a;
+    --text3: #5a7a5a;
+    --green: #7ec8a0;
+    --yellow: #f0c040;
+    --red: #e07070;
+    --accent: #a8d8a8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(160deg, #162a16 0%, #0a1a0a 70%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .header-logo { font-size: 36px; line-height: 1; }
+  .header-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+  .header-sub { font-size: 12px; color: var(--text3); font-style: italic; margin-top: 2px; }
+        background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; color: var(--text3); font-size: 11px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s;
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  }
+          
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 2px; width: 100%; }
+  .tab-btn {
+    background: transparent; border: none; border-radius: 8px 8px 0 0;
+    padding: 8px 4px; color: var(--text3); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .2s; font-family: 'DM Sans', sans-serif;
+    flex: 1; text-align: center; white-space: nowrap; overflow: hidden;
+  }
+  .tab-btn:hover { color: var(--text2); background: var(--bg3); }
+  .tab-btn.active { background: var(--green); color: #0a1a0a; }
+
+  /* ── Content ── */
+  .content { max-width: 920px; margin: 0 auto; padding: 22px 20px; }
+
+  /* ── Month strip ── */
+  .month-strip { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 16px; }
+  .month-btn {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 14px; color: var(--text3); font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: all .15s; font-family: 'DM Sans', sans-serif;
+    position: relative;
+  }
+  .month-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .month-btn.active { background: var(--green); color: #0a1a0a; border-color: var(--green); }
+  .month-dot { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+
+  /* ── Controls ── */
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+  .search-input {
+    flex: 1 1 140px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 14px; color: var(--text); font-size: 13px;
+    outline: none; font-family: 'DM Sans', sans-serif; transition: border .2s;
+  }
+  .search-input:focus { border-color: var(--border2); }
+  .filter-btn {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .filter-btn:hover { border-color: var(--border2); }
+  .filter-btn.active { background: var(--green); color: #0a1a0a; border-color: var(--green); }
+  .filter-row { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; margin-bottom: 14px; }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── Cards ── */
+  .cards { display: grid; gap: 10px; }
+  .card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: all .18s;
+  }
+  .card:hover { border-color: var(--border2); background: var(--bg3); transform: translateY(-1px); }
+  .card-row { display: flex; align-items: center; gap: 14px; }
+  .card-emoji { font-size: 26px; min-width: 34px; text-align: center; }
+  .card-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .card-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-left: auto; }
+  .tag {
+    display: flex; align-items: center; gap: 4px;
+    border-radius: 7px; padding: 3px 9px; font-size: 11px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag-green { background: rgba(168,216,168,.15); border: 1px solid rgba(168,216,168,.4); color: var(--green); }
+  .tag-yellow { background: rgba(240,192,64,.12); border: 1px solid rgba(240,192,64,.35); color: var(--yellow); }
+  .tag-red { background: rgba(224,112,112,.12); border: 1px solid rgba(224,112,112,.35); color: var(--red); }
+
+  /* ── Full card (lijst) ── */
+  .full-card-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .full-card-section label { font-size: 10px; color: var(--text3); display: block; margin-bottom: 4px; }
+  .month-pills { display: flex; gap: 3px; flex-wrap: wrap; }
+  .month-pill {
+    border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600;
+  }
+  .pill-green { background: rgba(168,216,168,.15); color: var(--green); border: 1px solid transparent; }
+  .pill-yellow { background: rgba(240,192,64,.12); color: var(--yellow); border: 1px solid transparent; }
+  .pill-red { background: rgba(224,112,112,.12); color: var(--red); border: 1px solid transparent; }
+  .pill-current { border: 1px solid currentColor !important; }
+
+  /* ── Logboek ── */
+  .logboek-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .logboek-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--green); }
+  .logboek-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .add-btn {
+    background: var(--green); border: none; border-radius: 10px;
+    padding: 10px 22px; color: #0a1a0a; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity .15s;
+    white-space: nowrap;
+  }
+  .add-btn:hover { opacity: .85; }
+
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .section-label { font-size: 13px; font-weight: 700; color: var(--text2); }
+  .section-count { background: var(--bg3); color: var(--text3); border-radius: 20px; padding: 1px 8px; font-size: 11px; }
+
+  .log-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: all .18s;
+  }
+  .log-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .log-card.dimmed { opacity: .65; }
+  .log-card.dimmed:hover { opacity: 1; }
+  .log-card-top { display: flex; align-items: flex-start; gap: 12px; }
+  .log-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+  .log-meta-item { font-size: 12px; color: var(--text2); }
+  .log-meta-item strong { color: var(--text); }
+  .log-notes { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 6px; }
+  .countdown { font-size: 11px; font-weight: 600; margin-top: 4px; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700;
+  }
+  .badge-sown { background: rgba(168,216,168,.15); color: var(--green); border: 1px solid rgba(168,216,168,.35); }
+  .badge-transplanted { background: rgba(240,192,64,.12); color: var(--yellow); border: 1px solid rgba(240,192,64,.35); }
+  .badge-harvested { background: rgba(224,112,112,.12); color: var(--red); border: 1px solid rgba(224,112,112,.35); }
+
+  .amount-box { text-align: center; background: var(--bg3); border-radius: 8px; padding: 6px 10px; min-width: 44px; }
+  .amount-num { font-size: 17px; font-weight: 700; color: var(--green); }
+  .amount-label { font-size: 9px; color: var(--text3); }
+
+  /* ── Empty state ── */
+  .empty { text-align: center; padding: 60px 20px; color: var(--text3); }
+  .empty-icon { font-size: 52px; margin-bottom: 14px; }
+  .empty h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text2); font-weight: 400; margin-bottom: 8px; }
+  .empty p { font-size: 13px; margin-bottom: 20px; }
+
+  /* ── Modal overlay ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn .15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: 16px;
+    padding: 26px; max-width: 500px; width: 100%;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    max-height: 90vh; overflow-y: auto;
+    animation: slideUp .2s ease;
+  }
+  .modal.wide { max-width: 540px; }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--green); }
+  .close-btn { background: none; border: none; color: var(--text3); font-size: 22px; cursor: pointer; line-height: 1; padding: 2px; }
+  .close-btn:hover { color: var(--text2); }
+
+  /* ── Crop modal ── */
+  .crop-modal-top { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+  .crop-modal-emoji { font-size: 40px; }
+  .crop-modal-name { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green); }
+  .tip-box { background: var(--bg); border-radius: 10px; padding: 14px; margin-bottom: 10px; font-style: italic; color: var(--text2); font-size: 13px; }
+  .fact-box { background: rgba(126,200,160,.07); border: 1px solid rgba(126,200,160,.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: var(--green); font-size: 12px; line-height: 1.5; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .info-box { background: var(--bg); border-radius: 10px; padding: 12px; }
+  .info-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; letter-spacing: .5px; }
+  .info-value { font-size: 19px; font-weight: 700; }
+  .month-section { margin-bottom: 12px; }
+  .month-section-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .action-btn {
+    width: 100%; background: var(--green); border: none; border-radius: 10px;
+    padding: 12px; color: #0a1a0a; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 14px;
+    transition: opacity .15s;
+  }
+  .action-btn:hover { opacity: .85; }
+
+  /* ── Add modal ── */
+  .crop-pick-list { max-height: 300px; overflow-y: auto; display: grid; gap: 6px; margin-top: 10px; }
+  .crop-pick-item {
+    display: flex; align-items: center; gap: 10px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
+    cursor: pointer; transition: all .15s;
+  }
+  .crop-pick-item:hover { border-color: var(--border2); background: var(--bg4); }
+  .crop-pick-name { font-weight: 600; color: var(--text); flex: 1; font-size: 13px; }
+  .crop-pick-meta { font-size: 11px; color: var(--text3); }
+
+  .form-field { margin-bottom: 12px; }
+  .form-label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 5px; font-weight: 600; letter-spacing: .3px; }
+  .form-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 9px 12px; color: var(--text); font-size: 13px; outline: none;
+    font-family: 'DM Sans', sans-serif; transition: border .2s;
+  }
+  .form-input:focus { border-color: var(--green); }
+  .form-input::placeholder { color: var(--text3); }
+  textarea.form-input { resize: vertical; }
+  .method-toggle { display: flex; gap: 8px; }
+  .method-btn {
+    flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 9px; color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif;
+  }
+  .method-btn.active { background: rgba(168,216,168,.15); border-color: var(--green); color: var(--green); }
+
+  .harvest-preview { background: var(--bg); border-radius: 10px; padding: 12px; font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .harvest-preview strong { color: var(--red); }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn-back {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 10px 16px; color: var(--text2); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-save {
+    flex: 1; background: var(--green); border: none; border-radius: 10px;
+    padding: 11px; color: #0a1a0a; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity .15s;
+  }
+  .btn-save:hover { opacity: .85; }
+  .btn-delete {
+    background: none; border: 1px solid #3a2a2a; border-radius: 10px;
+    padding: 10px 14px; color: #7a5a5a; font-size: 13px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .btn-delete:hover { border-color: var(--red); color: var(--red); }
+  .btn-delete-confirm {
+    background: rgba(224,112,112,.12); border: 1px solid var(--red); border-radius: 10px;
+    padding: 10px 14px; color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── Steps indicator ── */
+  .steps { display: flex; gap: 8px; margin-bottom: 16px; }
+  .step { flex: 1; height: 3px; border-radius: 2px; background: var(--border); }
+  .step.done { background: var(--green); }
+
+  /* ── Notification ── */
+  .notif {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #0a1a0a; border-radius: 10px; padding: 10px 20px;
+    font-size: 13px; font-weight: 700; z-index: 300; pointer-events: none;
+    animation: notifIn .3s ease, notifOut .3s ease 1.7s forwards;
+  }
+  @keyframes notifIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @keyframes notifOut { to { opacity:0; transform: translateX(-50%) translateY(10px); } }
+
+  /* ── Geschiedenis ── */
+  .gesch-year-block { margin-bottom: 32px; }
+  .gesch-year-heading {
+    font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900;
+    color: var(--green); opacity: .18; letter-spacing: -1px;
+    margin-bottom: 14px; user-select: none;
+  }
+  .gesch-month-block { margin-bottom: 20px; }
+  .gesch-month-label {
+    font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 8px; padding-left: 2px;
+  }
+  .gesch-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px;
+    cursor: pointer; transition: all .18s; margin-bottom: 8px;
+  }
+  .gesch-card:hover { border-color: var(--border2); background: var(--bg3); transform: translateY(-1px); }
+  .gesch-card-info { flex: 1; }
+  .gesch-card-name { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .gesch-dates { display: flex; gap: 16px; flex-wrap: wrap; }
+  .gesch-date { font-size: 12px; color: var(--text2); }
+  .gesch-date strong { color: var(--text); }
+  .gesch-duration {
+    text-align: center; background: var(--bg3); border-radius: 8px;
+    padding: 6px 12px; min-width: 54px;
+  }
+  .gesch-duration-num { font-size: 16px; font-weight: 700; color: var(--yellow); }
+  .gesch-duration-label { font-size: 9px; color: var(--text3); }
+  .gesch-notes { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 5px; }
+
+  /* stats bar */
+  .stats-strip {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;
+  }
+  .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--green); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .gesch-filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+
+  /* ── Plant profile bars ── */
+  .profile-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .profile-card {
+    background: var(--bg); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .profile-label { font-size: 10px; color: var(--text3); letter-spacing: .4px; margin-bottom: 6px; font-weight: 700; }
+  .profile-value { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; }
+  .profile-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+  /* water bar */
+  .water-bar { display: flex; gap: 4px; margin-top: 4px; }
+  .water-drop { font-size: 16px; opacity: .2; transition: opacity .2s; }
+  .water-drop.on { opacity: 1; }
+
+  /* height bar */
+  .height-visual {
+    display: flex; align-items: flex-end; gap: 3px; height: 32px; margin-top: 4px;
+  }
+  .height-seg {
+    flex: 1; border-radius: 3px 3px 0 0; background: var(--border);
+    transition: background .2s;
+  }
+  .height-seg.on { background: var(--green); }
+
+  /* pot size */
+  .pot-visual { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .pot-icon { font-size: 22px; }
+  .pot-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+  .companion-section { margin-top: 14px; }
+  .companion-title { font-size: 11px; color: var(--text3); font-weight: 700; letter-spacing: .4px; margin-bottom: 8px; }
+  .companion-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .companion-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .companion-good { background: rgba(126,200,160,.12); border: 1px solid rgba(126,200,160,.3); color: var(--green); }
+  .companion-good:hover { background: rgba(126,200,160,.22); }
+  .companion-bad  { background: rgba(224,112,112,.1);  border: 1px solid rgba(224,112,112,.3); color: var(--red); }
+  .companion-bad:hover  { background: rgba(224,112,112,.18); }
+  .companion-note { font-size: 11px; color: var(--text3); font-style: italic; margin-bottom: 10px; line-height: 1.5; }
+
+  .spacing-box {
+    display: flex; gap: 10px; margin-bottom: 14px;
+  }
+  .spacing-pill {
+    flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 10px 14px; text-align: center;
+  }
+  .spacing-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--yellow); }
+  .spacing-unit { font-size: 10px; color: var(--text3); }
+  .spacing-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .outside-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 7px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+    margin-top: 6px;
+  }
+  .outside-now {
+    background: rgba(240,192,64,.18); border: 1px solid rgba(240,192,64,.5);
+    color: var(--yellow);
+    animation: pulse-yellow 2s ease-in-out infinite;
+  }
+  .outside-soon {
+    background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.3);
+    color: #c8a030;
+  }
+  .outside-later {
+    background: rgba(126,200,160,.08); border: 1px solid rgba(126,200,160,.2);
+    color: var(--text3);
+  }
+  @keyframes pulse-yellow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(240,192,64,0); }
+    50% { box-shadow: 0 0 0 4px rgba(240,192,64,.15); }
+  }
+
+  /* ── Foto advies ── */
+  .foto-page { max-width: 680px; margin: 0 auto; }
+  .foto-dropzone {
+    border: 2px dashed var(--border2); border-radius: 16px;
+    padding: 48px 24px; text-align: center; cursor: pointer;
+    transition: all .2s; background: var(--bg2); position: relative;
+  }
+  .foto-dropzone:hover, .foto-dropzone.drag-over {
+    border-color: var(--green); background: rgba(126,200,160,.06);
+  }
+  .foto-dropzone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .foto-drop-icon { font-size: 52px; margin-bottom: 12px; }
+  .foto-drop-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--green); margin-bottom: 6px; }
+  .foto-drop-sub { font-size: 13px; color: var(--text3); }
+
+  .foto-preview-wrap { position: relative; margin-bottom: 16px; }
+  .foto-preview-img {
+    width: 100%; max-height: 380px; object-fit: contain;
+    border-radius: 14px; border: 1px solid var(--border2);
+    background: var(--bg);
+  }
+  .foto-clear-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,.6); border: none; border-radius: 20px;
+    color: #fff; font-size: 12px; padding: 4px 10px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 600;
+  }
+
+  .foto-question-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .foto-quick-btn {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px;
+    padding: 7px 14px; color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif;
+  }
+  .foto-quick-btn:hover { border-color: var(--green); color: var(--green); }
+  .foto-quick-btn.selected { background: rgba(126,200,160,.15); border-color: var(--green); color: var(--green); }
+
+  .foto-input-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .foto-text-input {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 13px;
+    outline: none; font-family: 'DM Sans', sans-serif;
+  }
+  .foto-text-input:focus { border-color: var(--green); }
+  .foto-analyse-btn {
+    background: var(--green); border: none; border-radius: 10px;
+    padding: 10px 22px; color: #0a1a0a; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap;
+    transition: opacity .15s;
+  }
+  .foto-analyse-btn:hover { opacity: .85; }
+  .foto-analyse-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .foto-loading {
+    text-align: center; padding: 36px; color: var(--text2);
+  }
+  .foto-spinner {
+    width: 36px; height: 36px; border: 3px solid var(--border);
+    border-top-color: var(--green); border-radius: 50%;
+    animation: spin .8s linear infinite; margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .foto-result {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 22px; line-height: 1.7;
+    animation: slideUp .25s ease;
+  }
+  .foto-result h3 { color: var(--green); font-family: 'Playfair Display', serif; margin-bottom: 12px; font-size: 17px; }
+  .foto-result p { color: var(--text2); font-size: 13px; margin-bottom: 10px; }
+  .foto-result strong { color: var(--text); }
+  .foto-result ul { padding-left: 18px; color: var(--text2); font-size: 13px; }
+  .foto-result li { margin-bottom: 6px; }
+  .foto-result .verdict {
+    background: var(--bg3); border-left: 3px solid var(--green);
+    border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 14px;
+    font-size: 14px; font-weight: 600; color: var(--text);
+  }
+  .foto-result .verdict.warn { border-color: var(--yellow); }
+  .foto-result .verdict.bad  { border-color: var(--red); }
+
+  .foto-history { margin-top: 28px; }
+  .foto-history-title { font-size: 12px; color: var(--text3); font-weight: 700; letter-spacing: .4px; margin-bottom: 10px; }
+  .foto-history-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+    cursor: pointer; transition: all .15s;
+  }
+  .foto-history-item:hover { border-color: var(--border2); }
+  .foto-history-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+  .foto-history-meta { flex: 1; }
+  .foto-history-q { font-size: 12px; font-weight: 600; color: var(--text); }
+  .foto-history-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── Responsive ── */
+  body { display: block; }
+  .content { max-width: 960px; margin: 0 auto; padding: 22px 20px; }
+
+  @media (max-width: 600px) {
+    .header { padding: 10px 12px 0; }
+    .header-logo { font-size: 24px; }
+    .header-title { font-size: 20px; }
+    .header-sub { display: none; }
+    .content { padding: 14px 12px; }
+    .full-card-grid { grid-template-columns: 1fr; gap: 8px; }
+    .info-grid { grid-template-columns: 1fr; }
+    .stats-strip { grid-template-columns: 1fr 1fr; }
+    .profile-grid { grid-template-columns: 1fr; }
+
+    /* Tabs: scrollable but no page overflow */
+    .tabs { overflow-x: hidden; flex-wrap: nowrap; }
+    .tab-btn { font-size: 11px; }
+
+    /* Header actions: icon only */
+    .header-actions { gap: 4px; }
+    .sync-btn { padding: 5px 8px; font-size: 13px; gap: 0; }
+    .sync-btn .sync-label { display: none; }
+
+    /* Cards */
+    .card-tags { display: none; }
+    .log-meta { gap: 6px; }
+    .log-meta-item { font-size: 11px; }
+
+    /* Month strip scrollable */
+    .month-strip { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .month-strip::-webkit-scrollbar { display: none; }
+
+    /* Controls */
+    .controls { gap: 6px; }
+    .search-input { min-width: 0; }
+
+    /* Modal as bottom sheet */
+    .modal { border-radius: 20px 20px 0 0; max-height: 88vh; position: fixed; bottom: 0; left: 0; right: 0; max-width: 100%; width: 100%; }
+    .overlay { align-items: flex-end; padding: 0; }
+
+    .gesch-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .gesch-filters { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<script>
+// Registreer service worker voor offline gebruik
+if ('serviceWorker' in navigator) {
+  const swCode = `
+const CACHE = 'zaaikalender-v1';
+const ASSETS = [self.location.pathname];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match(e.request))));
+});
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url, {scope: './'}).catch(() => {});
+}
+</script>
+
+<div class="header">
+  <div style="max-width:960px;margin:0 auto;">
+    <div class="header-top">
+      <span class="header-logo">🌱</span>
+      <div>
+        <div class="header-title">Zaaikalender</div>
+        <div class="header-sub">Zaai bij, volg op, oogst met plezier</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('kalender')">📅 Kalender</button>
+      <button class="tab-btn" onclick="switchTab('gewassen')">🌿 Gewassen</button>
+      <button class="tab-btn" onclick="switchTab('logboek')">📋 Mijn zaailijst</button>
+      <button class="tab-btn" onclick="switchTab('geschiedenis')">📖 Geschiedenis</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="app"></div>
+
+<!-- Modals container -->
+<div id="modals"></div>
+<!-- Notifications -->
+<div id="notifs"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+const CROPS = [
+  // ══════════════════════════════════════════════════════
+  //  GROENTE
+  // ══════════════════════════════════════════════════════
+  { id:1,  name:"Tomaat",        emoji:"🍅", cat:"Groente", in:[1,2,3],     out:[4,5],       h:[7,8,9],       days:75,
+    tip:"Start binnen op een warme vensterbank",
+    fact:"Een tomatenplant kan in één seizoen meer dan 10 kg vruchten geven — mits goed gesnoeid.",
+    spacing:60, rowSpacing:80, water:3, height:150, potDepth:40, potSize:'xl',
+    good:[13,3,15,42,43,45,66], bad:[9,8,62,10],
+    goodNote:"Basilicum houdt bladluis op afstand; sla vult de ruimte eronder; afrikaantjes en tijm houden ongedierte weg",
+    badNote:"Aardappels en broccoli delen ziektes; asperge en ui remmen de groei" },
+
+  { id:2,  name:"Komkommer",     emoji:"🥒", cat:"Groente", in:[3,4],       out:[5],         h:[7,8,9],       days:60,
+    tip:"Houdt van warmte, zaai na de laatste vorst",
+    fact:"Komkommers bestaan voor 96% uit water — ideaal voor hydratatie op warme zomerdagen.",
+    spacing:40, rowSpacing:120, water:3, height:180, potDepth:35, potSize:'xl',
+    good:[12,3,47,67,69,43], bad:[25,9],
+    goodNote:"Doperwten en sla vullen ruimte in; borage trekt bestuivers; oregano en koriander houden bladluis weg",
+    badNote:"Venkel en aardappel remmen de groei" },
+
+  { id:3,  name:"Sla",           emoji:"🥬", cat:"Groente", in:[2,3,4],     out:[3,4,5,8,9], h:[5,6,7,9,10],  days:45,
+    tip:"Zaai elke 2 weken een beetje voor doorlopende oogst",
+    fact:"Sla is een van de snelst groeiende groenten — van zaad tot oogst in slechts 6 weken.",
+    spacing:25, rowSpacing:30, water:2, height:25, potDepth:15, potSize:'s',
+    good:[4,5,10,71,20,1,2], bad:[25],
+    goodNote:"Wortel, radijs en ui zijn goede buren; kervel en munt houden slakken weg; groeit goed onder tomaat en komkommer",
+    badNote:"Venkel remt de groei van bijna alle planten" },
+
+  { id:4,  name:"Wortel",        emoji:"🥕", cat:"Groente", in:[3,4],       out:[3,4,5],     h:[7,8,9,10],    days:70,
+    tip:"Los, steenvrije grond geeft de mooiste rechte wortels",
+    fact:"Wortels waren oorspronkelijk paars — de oranje wortel is pas in de 17e eeuw gekweekt door Nederlandse tuinders.",
+    spacing:5, rowSpacing:30, water:2, height:30, potDepth:30, potSize:'m',
+    good:[3,10,14,15,65,66], bad:[8,25],
+    goodNote:"Sla, ui en peterselie houden wortelvlieg weg; rozemarijn en tijm beschermen ook",
+    badNote:"Broccoli en venkel concurreren om voedingsstoffen" },
+
+  { id:5,  name:"Radijs",        emoji:"🔴", cat:"Groente", in:[3,4,5,6],   out:[3,4,5,6],   h:[4,5,6,7],     days:25,
+    tip:"Makkelijkste groente om te beginnen — al klaar in 3-4 weken",
+    fact:"Radijs is zo snel klaar dat tuinders hem gebruiken als markering tussen langzamere gewassen.",
+    spacing:5, rowSpacing:20, water:2, height:20, potDepth:15, potSize:'s',
+    good:[3,2,4,71,69], bad:[25],
+    goodNote:"Sla, komkommer en wortel zijn ideale buren; kervel en koriander verbeteren de smaak",
+    badNote:"Venkel remt de groei" },
+
+  { id:6,  name:"Courgette",     emoji:"🥬", cat:"Groente", in:[4,5],       out:[5],         h:[7,8,9],       days:55,
+    tip:"Eén plant geeft al meer courgettes dan een gezin op kan",
+    fact:"Een courgette kan in één nacht meer dan 10 cm groeien — oogst elke dag om reuzenpompoenen te vermijden.",
+    spacing:80, rowSpacing:100, water:3, height:60, potDepth:30, potSize:'xl',
+    good:[12,43,47,45,69], bad:[1,25],
+    goodNote:"Doperwten stikstof voeden de bodem; calendula en borage trekken bestuivers aan; afrikaantjes houden luizen weg",
+    badNote:"Tomaat concurreert om ruimte; venkel remt groei" },
+
+  { id:7,  name:"Paprika",       emoji:"🫑", cat:"Groente", in:[1,2,3],     out:[4,5],       h:[7,8,9,10],    days:90,
+    tip:"Heeft veel warmte nodig — kas of beschutte plek is ideaal",
+    fact:"Paprika bevat meer vitamine C dan een sinaasappel — een rode paprika heeft driemaal zo veel.",
+    spacing:45, rowSpacing:60, water:2, height:70, potDepth:30, potSize:'l',
+    good:[13,3,14,66,67], bad:[25,9],
+    goodNote:"Basilicum en oregano verbeteren de smaak en houden ongedierte weg; peterselie is een goede buur",
+    badNote:"Venkel en aardappel zijn slechte buren" },
+
+  { id:8,  name:"Broccoli",      emoji:"🥦", cat:"Groente", in:[3,4],       out:[4,5],       h:[6,7,8,9],     days:80,
+    tip:"Oogst het hoofdhoofd vroeg — dan groeien kleine zij-roosjes bij",
+    fact:"Broccoli is eigenlijk een bloem — je eet de ongebloeid bloemknoppen van de plant.",
+    spacing:45, rowSpacing:60, water:2, height:80, potDepth:25, potSize:'l',
+    good:[14,4,65,68,45], bad:[1,9,25],
+    goodNote:"Peterselie en wortel zijn goede buren; rozemarijn en salie houden koolvlieg weg; afrikaantjes helpen ook",
+    badNote:"Tomaat en aardappel verspreiden ziektes; venkel remt groei" },
+
+  { id:9,  name:"Aardappel",     emoji:"🥔", cat:"Groente", in:[],          out:[3,4],       h:[7,8,9],       days:90,
+    tip:"Plant poters — kleine aardappels met spruiten — op 10 cm diepte",
+    fact:"Aardappels zijn de vierde grootste voedselgewas ter wereld en werden in de 16e eeuw vanuit Zuid-Amerika naar Europa gebracht.",
+    spacing:35, rowSpacing:70, water:2, height:60, potDepth:30, potSize:'xl',
+    good:[12,14,43,65], bad:[1,8,32,51,39],
+    goodNote:"Doperwten en peterselie zijn goede buren; calendula en rozemarijn houden Coloradokever weg",
+    badNote:"Tomaat, broccoli en bloemkool delen ziektes; aardbei en framboos verspreiden virussen" },
+
+  { id:10, name:"Ui",            emoji:"🧅", cat:"Groente", in:[2,3],       out:[3,4],       h:[7,8,9],       days:100,
+    tip:"Plant diep en op vaste grond voor grote bollen",
+    fact:"Uien laten je huilen omdat ze bij beschadiging een stof vrijlaten die reageert met het vocht in je ogen.",
+    spacing:10, rowSpacing:30, water:1, height:50, potDepth:20, potSize:'m',
+    good:[4,3,7,1,8], bad:[12,29,30,31,62],
+    goodNote:"Wortel, sla en paprika profiteren van de geur die ongedierte afweert",
+    badNote:"Alle soorten bonen en asperge worden geremd door uien" },
+
+  { id:11, name:"Knoflook",      emoji:"🧄", cat:"Groente", in:[9,10],      out:[9,10],      h:[6,7],         days:240,
+    tip:"Plant in de herfst voor de grootste bollen in de zomer",
+    fact:"Knoflook is een van de oudste gecultiveerde planten — al 5000 jaar geleden geteeld in Egypte.",
+    spacing:10, rowSpacing:25, water:1, height:50, potDepth:20, potSize:'m',
+    good:[1,2,3,4,39,51,52,53], bad:[12,29,30,31,62],
+    goodNote:"Houdt bladluis, mijten en schimmels weg bij tomaat, komkommer, sla, wortel en fruitstruiken",
+    badNote:"Alle soorten bonen en asperge worden sterk geremd door knoflook" },
+
+  { id:12, name:"Doperwten",     emoji:"🫛", cat:"Groente", in:[3,4],       out:[3,4],       h:[6,7,8],       days:70,
+    tip:"Zet een stok of net neer — erwtjes klimmen graag omhoog",
+    fact:"Erwten fixeren stikstof uit de lucht en verrijken zo de bodem voor de planten die er na komen.",
+    spacing:5, rowSpacing:60, water:2, height:150, potDepth:20, potSize:'l',
+    good:[4,3,6,69,20], bad:[10,11],
+    goodNote:"Wortel en sla profiteren van de stikstof; koriander en munt houden trips weg",
+    badNote:"Ui en knoflook remmen de groei sterk" },
+
+  { id:18, name:"Pompoen",       emoji:"🎃", cat:"Groente", in:[4,5],       out:[5],         h:[9,10],        days:110,
+    tip:"Drie Zussen methode: plant met maïs en bonen voor beste resultaat",
+    fact:"De zwaarste pompoen ooit gewogen was 1226 kg — gekweekt in Duitsland in 2023.",
+    spacing:100, rowSpacing:150, water:3, height:40, potDepth:40, potSize:'xl',
+    good:[38,12,43,47], bad:[25],
+    goodNote:"Maïs geeft schaduw en structuur; doperwten verrijken de bodem; calendula en borage trekken bestuivers",
+    badNote:"Venkel remt de groei" },
+
+  { id:19, name:"Spinazie",      emoji:"🍃", cat:"Groente", in:[2,3,4,8,9], out:[3,4,9,10],  h:[4,5,6,10,11], days:45,
+    tip:"Groeit snel koud weer — ideaal voor voor- en nateelt",
+    fact:"Popeye zorgde voor een spinaziehype in de jaren 30, maar de beweerde ijzerrijkdom berustte op een rekenfout.",
+    spacing:10, rowSpacing:25, water:2, height:30, potDepth:15, potSize:'s',
+    good:[3,4,14,65,2], bad:[25],
+    goodNote:"Sla, wortel en peterselie zijn goede buren; rozemarijn houdt bladluizen weg",
+    badNote:"Venkel remt de groei" },
+
+  { id:20, name:"Munt",          emoji:"🪴", cat:"Kruid",   in:[3,4],       out:[4,5],       h:[5,6,7,8,9],   days:60,
+    tip:"Plant in een pot — munt verspreidt zich anders door de hele tuin",
+    fact:"Er bestaan meer dan 600 munte soorten — van pepermunt tot chocolademunt en ananasmelisse.",
+    spacing:30, rowSpacing:40, water:2, height:50, potDepth:20, potSize:'m',
+    good:[3,8,7,12,36], bad:[14],
+    goodNote:"Houdt mieren, bladluis en koolvlieg weg bij sla, broccoli, paprika en paksoi",
+    badNote:"Remt de groei van peterselie als ze te dicht bij staan" },
+
+  { id:21, name:"Prei",          emoji:"🌿", cat:"Groente", in:[2,3],       out:[4,5],       h:[9,10,11,12],  days:150,
+    tip:"Diep planten in een gat zorgt voor langere witte stengel",
+    fact:"Prei kan de hele winter in de grond blijven staan — vorst maakt hem alleen maar zoeter.",
+    spacing:15, rowSpacing:30, water:2, height:80, potDepth:25, potSize:'l',
+    good:[4,3,14,65,9], bad:[12,29],
+    goodNote:"Wortel en sla zijn goede buren; peterselie en rozemarijn houden preimot weg",
+    badNote:"Bonen en doperwten worden geremd door prei" },
+
+  { id:22, name:"Aubergine",     emoji:"🍆", cat:"Groente", in:[2,3],       out:[4,5],       h:[8,9,10],      days:100,
+    tip:"Heeft veel warmte nodig — Zuid-Europa is het ideale klimaat",
+    fact:"Aubergine is botanisch gezien een bes en nauw verwant aan tomaat en paprika.",
+    spacing:60, rowSpacing:70, water:3, height:80, potDepth:35, potSize:'xl',
+    good:[13,66,67,45], bad:[9,25],
+    goodNote:"Basilicum, tijm en oregano houden ongedierte weg; afrikaantjes beschermen de wortels",
+    badNote:"Aardappel deelt ziektes; venkel remt groei" },
+
+  { id:23, name:"Selderij",      emoji:"🥬", cat:"Groente", in:[2,3],       out:[4,5],       h:[8,9,10],      days:120,
+    tip:"Veel water geven voor malse stengels — droogte maakt ze taai",
+    fact:"Selderij verbrandt meer calorieën om te verteren dan het bevat — een van de weinige echte negatieve-calorie voedingsmiddelen.",
+    spacing:25, rowSpacing:40, water:3, height:60, potDepth:25, potSize:'l',
+    good:[8,1,21,14], bad:[25,19],
+    goodNote:"Broccoli, tomaat en prei zijn goede buren; peterselie helpt tegen selderijavlieg",
+    badNote:"Venkel en spinazie remmen de groei" },
+
+  { id:24, name:"Koolrabi",      emoji:"🫛", cat:"Groente", in:[3,4],       out:[4,5],       h:[6,7,8],       days:60,
+    tip:"Oogst als de knol zo groot is als een tennisbal — daarna wordt hij houterig",
+    fact:"Koolrabi is een combinatie van kool en raap — de naam komt van het Italiaanse 'cavolo rapa'.",
+    spacing:20, rowSpacing:30, water:2, height:40, potDepth:20, potSize:'m',
+    good:[4,14,3,65,68], bad:[1,25],
+    goodNote:"Wortel, peterselie en sla zijn goede buren; rozemarijn en salie houden koolvlieg weg",
+    badNote:"Tomaat en venkel zijn slechte buren" },
+
+  { id:25, name:"Venkel",        emoji:"🌿", cat:"Groente", in:[4,5],       out:[5,6],       h:[8,9,10],      days:90,
+    tip:"Plant venkel ver weg van andere groenten — hij remt bijna alles",
+    fact:"Venkel is een van de weinige planten die allelopatisch is — zijn wortels scheiden stoffen uit die andere planten remmen.",
+    spacing:30, rowSpacing:50, water:1, height:150, potDepth:25, potSize:'l',
+    good:[26,35], bad:[1,2,3,4,6,7,8,9,12,19,23],
+    goodNote:"Rucola en andijvie zijn de weinige planten die goed met venkel opschieten",
+    badNote:"Remt bijna alle tuinplanten — plant altijd in een hoek apart" },
+
+  { id:26, name:"Rucola",        emoji:"🍃", cat:"Groente", in:[3,4,5,6],   out:[3,4,5,6,9], h:[5,6,7,10],    days:35,
+    tip:"Groeit snel en kan meerdere keren worden geoogst door bladeren te knippen",
+    fact:"Rucola was bij de Romeinen al populair — en werd zelfs als afrodisiacum beschouwd.",
+    spacing:10, rowSpacing:20, water:2, height:25, potDepth:10, potSize:'s',
+    good:[3,4,14,5,25], bad:[],
+    goodNote:"Sla, wortel en peterselie zijn goede buren; een van de weinige planten die goed naast venkel groeit",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:27, name:"Snijbiet",      emoji:"🥬", cat:"Groente", in:[3,4],       out:[4,5],       h:[7,8,9,10],    days:60,
+    tip:"Oogst de buitenste bladeren — het hart blijft groeien voor een langere oogst",
+    fact:"Snijbiet bestaat in prachtige kleuren — rood, geel, oranje en wit zijn allemaal verschillende rassen.",
+    spacing:30, rowSpacing:40, water:2, height:60, potDepth:20, potSize:'m',
+    good:[3,12,14,43], bad:[25],
+    goodNote:"Sla, doperwten en peterselie zijn goede buren; calendula trekt bestuivers aan",
+    badNote:"Venkel remt de groei" },
+
+  { id:28, name:"Rode biet",     emoji:"🟤", cat:"Groente", in:[3,4],       out:[4,5],       h:[7,8,9],       days:70,
+    tip:"Zaai clusters van 3-4 zaden — elk 'zaad' is eigenlijk een vruchtje met meerdere zaden",
+    fact:"Rode biet kleurt je urine roze of rood — volkomen onschadelijk, maar kan wel schrikken.",
+    spacing:10, rowSpacing:30, water:2, height:30, potDepth:20, potSize:'m',
+    good:[3,10,14,65,8], bad:[25],
+    goodNote:"Sla, ui en peterselie zijn goede buren; rozemarijn houdt aardvlooien weg",
+    badNote:"Venkel remt de groei" },
+
+  { id:29, name:"Sperziebonen",  emoji:"🫘", cat:"Groente", in:[4,5],       out:[4,5],       h:[7,8,9],       days:60,
+    tip:"Directe zaai buiten — bonen houden niet van verplanten",
+    fact:"Sperziebonen fixeren stikstof in de bodem en laten de grond vruchtbaarder achter dan ze hem aantroffen.",
+    spacing:10, rowSpacing:45, water:2, height:40, potDepth:20, potSize:'l',
+    good:[4,3,6,38,43], bad:[10,11,21],
+    goodNote:"Wortel, sla, courgette en maïs zijn goede buren; calendula trekt bestuivers aan",
+    badNote:"Ui, knoflook en prei remmen de groei sterk" },
+
+  { id:30, name:"Snijbonen",     emoji:"🫘", cat:"Groente", in:[4,5],       out:[5],         h:[7,8,9,10],    days:75,
+    tip:"Klimboon — geef ze een hoog rek of stokken van minstens 2 meter",
+    fact:"Snijbonen kunnen tot 3 meter hoog klimmen en geven de hele zomer door vruchten.",
+    spacing:20, rowSpacing:50, water:2, height:300, potDepth:25, potSize:'l',
+    good:[4,3,38,6,43], bad:[10,11,21],
+    goodNote:"Wortel, sla, maïs en courgette zijn goede buren; calendula trekt bestuivers aan",
+    badNote:"Ui, knoflook en prei remmen de groei" },
+
+  { id:31, name:"Tuinbonen",     emoji:"🫘", cat:"Groente", in:[2,3],       out:[3,4],       h:[6,7],         days:90,
+    tip:"Vroeg zaaien kan — tuinbonen verdragen lichte vorst prima",
+    fact:"Tuinbonen zijn een van de oudste gecultiveerde peulvruchten — al 6000 jaar oud in het Midden-Oosten.",
+    spacing:20, rowSpacing:60, water:2, height:120, potDepth:25, potSize:'l',
+    good:[4,19,3,65], bad:[10,11,21],
+    goodNote:"Wortel, spinazie en sla zijn goede buren; rozemarijn houdt bladluizen weg",
+    badNote:"Ui, knoflook en prei remmen de groei" },
+
+  { id:32, name:"Bloemkool",     emoji:"🟢", cat:"Groente", in:[3,4],       out:[4,5],       h:[7,8,9,10],    days:90,
+    tip:"Wikkel de bladeren over de kool voor een witte kool — zonlicht maakt hem geel",
+    fact:"Bloemkool bestaat eigenlijk uit ontelbare kleine bloempjes die samengepakt zijn tot één hoofd.",
+    spacing:50, rowSpacing:60, water:3, height:60, potDepth:25, potSize:'l',
+    good:[14,4,65,68,45], bad:[1,9,25],
+    goodNote:"Peterselie, wortel en salie houden koolvlieg weg; afrikaantjes beschermen de wortels",
+    badNote:"Tomaat en aardappel verspreiden ziektes; venkel remt groei" },
+
+  { id:33, name:"Spruitjes",     emoji:"🌿", cat:"Groente", in:[4,5],       out:[5,6],       h:[10,11,12],    days:150,
+    tip:"Vorst verbetert de smaak — oogst na de eerste nachtvorst",
+    fact:"Spruitjes staan erom bekend dat mensen ze haten, maar dat komt door een bitterstof die bij 30% van de mensen sterker wordt geproefd.",
+    spacing:60, rowSpacing:70, water:2, height:100, potDepth:25, potSize:'l',
+    good:[14,4,65,68,45], bad:[1,9,25],
+    goodNote:"Peterselie, wortel en salie houden koolvlieg weg; afrikaantjes helpen ook",
+    badNote:"Tomaat en aardappel zijn slechte buren; venkel remt groei" },
+
+  { id:34, name:"Boerenkool",    emoji:"🥬", cat:"Groente", in:[4,5],       out:[5,6],       h:[10,11,12,1],  days:120,
+    tip:"Kan de hele winter buiten blijven — vorst maakt hem zoeter",
+    fact:"Boerenkool is een van de meest voedzame groenten — propvol vitamine K, C en antioxidanten.",
+    spacing:50, rowSpacing:60, water:2, height:80, potDepth:25, potSize:'l',
+    good:[14,4,65,68,45,12], bad:[1,9,25],
+    goodNote:"Peterselie, wortel, salie en doperwten zijn goede buren; afrikaantjes en rozemarijn houden ongedierte weg",
+    badNote:"Tomaat en aardappel zijn slechte buren; venkel remt groei" },
+
+  { id:35, name:"Andijvie",      emoji:"🥬", cat:"Groente", in:[5,6,7],     out:[6,7,8],     h:[9,10,11],     days:90,
+    tip:"Bind de bladeren samen voor een minder bittere smaak",
+    fact:"Andijvie is nauw verwant aan cichorei — en bevat inuline, dat goed is voor de darmflora.",
+    spacing:30, rowSpacing:40, water:2, height:40, potDepth:20, potSize:'m',
+    good:[3,14,4,25], bad:[],
+    goodNote:"Sla, peterselie en wortel zijn goede buren; een van de weinige planten die naast venkel groeit",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:36, name:"Paksoi",        emoji:"🥬", cat:"Groente", in:[3,4,7,8],   out:[4,5,8,9],   h:[5,6,9,10],    days:50,
+    tip:"Snel en makkelijk — twee teelten per jaar mogelijk",
+    fact:"Paksoi is een van de populairste groenten in Azië en wordt al meer dan 1500 jaar geteeld in China.",
+    spacing:25, rowSpacing:35, water:2, height:40, potDepth:20, potSize:'m',
+    good:[14,3,65,20,45], bad:[25],
+    goodNote:"Peterselie, sla, rozemarijn en munt houden koolvlieg weg; afrikaantjes helpen ook",
+    badNote:"Venkel remt de groei" },
+
+  { id:37, name:"Chinese kool",  emoji:"🥬", cat:"Groente", in:[6,7],       out:[7,8],       h:[9,10,11],     days:70,
+    tip:"Zomerteelt geeft snel bloemschieters — beter als herfstgroente",
+    fact:"Chinese kool is de basis voor kimchi — het nationale gerecht van Korea dat duizenden jaren oud is.",
+    spacing:35, rowSpacing:45, water:2, height:50, potDepth:20, potSize:'l',
+    good:[14,3,65,68,45], bad:[25,1],
+    goodNote:"Peterselie, sla, rozemarijn en salie houden koolvlieg weg; afrikaantjes helpen",
+    badNote:"Venkel en tomaat zijn slechte buren" },
+
+  { id:38, name:"Maïs",          emoji:"🌽", cat:"Groente", in:[4,5],       out:[5,6],       h:[8,9,10],      days:90,
+    tip:"Plant in blokken, niet in rijen — bevruchting via wind",
+    fact:"Eén maïskolf heeft altijd evenveel rijen korrels als de plantsoort — altijd een even getal.",
+    spacing:35, rowSpacing:70, water:3, height:200, potDepth:35, potSize:'xl',
+    good:[29,30,6,18,12], bad:[25],
+    goodNote:"Bonen, courgette en pompoen zijn de klassieke Drie Zussen — samen de perfecte combinatie",
+    badNote:"Venkel remt de groei" },
+
+  { id:57, name:"Pastinaak",     emoji:"🤍", cat:"Groente", in:[3,4],       out:[3,4],       h:[9,10,11],     days:120,
+    tip:"Direct buiten zaaien — verplanten verdraagt pastinaak niet",
+    fact:"Pastinaak is in de winter zoeter omdat de kou zetmeel omzet in suiker.",
+    spacing:10, rowSpacing:30, water:1, height:80, potDepth:30, potSize:'l',
+    good:[4,3,14,65,45], bad:[25],
+    goodNote:"Wortel, sla en peterselie zijn goede buren; rozemarijn en afrikaantjes houden ongedierte weg",
+    badNote:"Venkel remt de groei" },
+
+  { id:58, name:"Knolselderij",  emoji:"⚪", cat:"Groente", in:[2,3],       out:[4,5],       h:[9,10,11],     days:150,
+    tip:"Lange groeitijd — vroeg beginnen binnen is een must",
+    fact:"Knolselderij is eigenlijk de wortel van de plant — boven het maaiveld groeit de knol gedeeltelijk zichtbaar.",
+    spacing:35, rowSpacing:40, water:3, height:50, potDepth:25, potSize:'l',
+    good:[1,3,12,14,45], bad:[25,19],
+    goodNote:"Tomaat, sla, doperwten en peterselie zijn goede buren; afrikaantjes houden ongedierte weg",
+    badNote:"Venkel en spinazie remmen de groei" },
+
+  { id:59, name:"Spitskool",     emoji:"🥬", cat:"Groente", in:[2,3],       out:[3,4],       h:[5,6,7],       days:70,
+    tip:"Vroeg ras — al klaar voordat de late soorten beginnen",
+    fact:"Spitskool is zachter en zoeter dan ronde kool en heeft een puntige vorm door de losse bladstructuur.",
+    spacing:40, rowSpacing:50, water:2, height:40, potDepth:20, potSize:'l',
+    good:[14,4,45,65,68], bad:[1,2,6,25],
+    goodNote:"Peterselie, wortel, afrikaantjes, rozemarijn en salie houden koolvlieg weg",
+    badNote:"Tomaat, komkommer, courgette en venkel zijn slechte buren" },
+
+  { id:60, name:"Rode kool",     emoji:"🟣", cat:"Groente", in:[3,4],       out:[4,5],       h:[8,9,10],      days:120,
+    tip:"Kleur wordt intenser bij koude nachten in de herfst",
+    fact:"De rode kleur van rode kool is een pH-indicator — wordt rood in zuur en blauw in basisch milieu.",
+    spacing:50, rowSpacing:60, water:2, height:50, potDepth:20, potSize:'l',
+    good:[14,4,45,65,68], bad:[1,9,25],
+    goodNote:"Peterselie, wortel, afrikaantjes, rozemarijn en salie houden koolvlieg weg",
+    badNote:"Tomaat en aardappel verspreiden ziektes; venkel remt groei" },
+
+  { id:61, name:"Witte kool",    emoji:"🥬", cat:"Groente", in:[3,4],       out:[4,5],       h:[8,9,10],      days:120,
+    tip:"Plant diep — de stengel mag tot de onderste bladeren in de grond",
+    fact:"Van één witte koolplant kan een kool van wel 5 kg groeien bij goede verzorging.",
+    spacing:50, rowSpacing:60, water:2, height:50, potDepth:20, potSize:'l',
+    good:[14,4,45,65,68,11], bad:[1,9,25],
+    goodNote:"Peterselie, wortel, afrikaantjes, rozemarijn, salie en knoflook houden koolvlieg en rupsen weg",
+    badNote:"Tomaat en aardappel verspreiden ziektes; venkel remt groei" },
+
+  { id:62, name:"Asperge",       emoji:"🌿", cat:"Groente", in:[2,3],       out:[3,4],       h:[4,5,6],       days:730,
+    tip:"Vaste plant — wacht 2 jaar voor de eerste oogst, dan 20 jaar oogsten",
+    fact:"Een aspergebed kan 20 jaar productief blijven als je er goed voor zorgt.",
+    spacing:40, rowSpacing:150, water:2, height:150, potDepth:40, potSize:'xl',
+    good:[1,13,14,45,65], bad:[9,10,11],
+    goodNote:"Tomaat en basilicum houden aspergekevers weg; peterselie en afrikaantjes en rozemarijn helpen ook",
+    badNote:"Aardappel, ui en knoflook remmen de groei sterk" },
+
+  { id:63, name:"Postelein",     emoji:"🍃", cat:"Groente", in:[3,4,5],     out:[4,5,6],     h:[5,6,7,8],     days:40,
+    tip:"Snel en makkelijk — ook lekker als saladeplant",
+    fact:"Postelein is een van de rijkste plantaardige bronnen van omega-3 vetzuren.",
+    spacing:10, rowSpacing:20, water:1, height:15, potDepth:10, potSize:'s',
+    good:[3,26,5,14], bad:[25],
+    goodNote:"Sla, rucola, radijs en peterselie zijn goede buren",
+    badNote:"Venkel remt de groei" },
+
+  { id:64, name:"Raapsteel",     emoji:"🟤", cat:"Groente", in:[3,4],       out:[3,4,8,9],   h:[5,6,10,11],   days:50,
+    tip:"Twee seizoenen mogelijk — voorjaar en herfst",
+    fact:"Raapstelen zijn de jonge scheuten van de rapen — delicaat en nootachtig van smaak.",
+    spacing:10, rowSpacing:25, water:2, height:30, potDepth:15, potSize:'m',
+    good:[14,3,45], bad:[1,25],
+    goodNote:"Peterselie, sla en afrikaantjes zijn goede buren",
+    badNote:"Tomaat en venkel zijn slechte buren" },
+
+  // ══════════════════════════════════════════════════════
+  //  FRUIT
+  // ══════════════════════════════════════════════════════
+  { id:39, name:"Aardbei",       emoji:"🍓", cat:"Fruit",   in:[2,3],       out:[3,4],       h:[5,6,7],       days:90,
+    tip:"Plant op een zonnige plek; runners verwijderen voor grotere vruchten",
+    fact:"Aardbeien zijn de enige vrucht met de zaden aan de buitenkant — gemiddeld 200 zaadjes per aardbei.",
+    spacing:30, rowSpacing:40, water:2, height:20, potDepth:20, potSize:'m',
+    good:[13,15,20,45,41], bad:[9,8],
+    goodNote:"Basilicum verbetert de smaak; bieslook en munt houden bladluis weg; afrikaantjes en lavendel beschermen",
+    badNote:"Aardappels en broccoli verspreiden ziektes naar aardbeien" },
+
+  { id:48, name:"Tomaat (kers)", emoji:"🍒", cat:"Fruit",   in:[2,3],       out:[4,5],       h:[7,8,9],       days:65,
+    tip:"Kerstomaten zijn makkelijker dan grote — perfect voor beginners",
+    fact:"Kerstomaten bevatten procentueel meer suiker dan grote tomaten — vandaar de intensere smaak.",
+    spacing:40, rowSpacing:60, water:3, height:100, potDepth:30, potSize:'l',
+    good:[13,15,42,43,45,66], bad:[9,8],
+    goodNote:"Basilicum, bieslook, nasturtium, calendula, afrikaantjes en tijm houden ongedierte weg",
+    badNote:"Aardappels en broccoli delen ziektes" },
+
+  { id:49, name:"Meloen",        emoji:"🍈", cat:"Fruit",   in:[4,5],       out:[5,6],       h:[8,9],         days:90,
+    tip:"Heeft veel warmte nodig — ideaal in kas of tegen een zuidmuur",
+    fact:"Een meloen bestaat voor meer dan 90% uit water en is tegelijk een vrucht én een bes botanisch gezien.",
+    spacing:80, rowSpacing:100, water:3, height:30, potDepth:35, potSize:'xl',
+    good:[13,47,43,45], bad:[25],
+    goodNote:"Basilicum, borage, calendula en afrikaantjes trekken bestuivers aan en houden ongedierte weg",
+    badNote:"Venkel remt de groei" },
+
+  { id:50, name:"Watermeloen",   emoji:"🍉", cat:"Fruit",   in:[4,5],       out:[5,6],       h:[8,9],         days:100,
+    tip:"Heeft lange zomers nodig — kies een klein ras voor Nederland",
+    fact:"Watermeloen is een groente én een vrucht — botanisch een bes, cultuurkundig een groente én fruit.",
+    spacing:100, rowSpacing:120, water:3, height:30, potDepth:35, potSize:'xl',
+    good:[13,47,43,45], bad:[25],
+    goodNote:"Basilicum, borage, calendula en afrikaantjes trekken bestuivers aan",
+    badNote:"Venkel remt de groei" },
+
+  { id:51, name:"Frambozen",     emoji:"🫐", cat:"Fruit",   in:[],          out:[3,4],       h:[6,7,8],       days:365,
+    tip:"Vaste plant — plant eenmalig en oogst jarenlang",
+    fact:"Frambozen zijn geen echte bessen maar samengestelde steenvruchten — elke bolletje is een apart vruchtje.",
+    spacing:50, rowSpacing:150, water:2, height:150, potDepth:40, potSize:'xl',
+    good:[15,11,45,41,70], bad:[9],
+    goodNote:"Knoflook en bieslook houden ziektes weg; afrikaantjes, lavendel en citroenmelisse trekken bestuivers aan",
+    badNote:"Aardappels verspreiden virussen" },
+
+  { id:52, name:"Druiven",       emoji:"🍇", cat:"Fruit",   in:[],          out:[3,4],       h:[8,9,10],      days:365,
+    tip:"Klimplant voor een zonnige muur of pergola — geduldig zijn loont",
+    fact:"Een druivenstruik kan meer dan 100 jaar oud worden en in goede jaren honderden kilo's druiven geven.",
+    spacing:150, rowSpacing:200, water:1, height:300, potDepth:50, potSize:'xl',
+    good:[41,65,67,45], bad:[],
+    goodNote:"Lavendel, rozemarijn en oregano houden ongedierte weg; afrikaantjes beschermen de wortels",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:53, name:"Blauwe bes",    emoji:"🫐", cat:"Fruit",   in:[],          out:[3,4],       h:[7,8,9],       days:365,
+    tip:"Heeft zure grond nodig — mix potgrond met veenmos",
+    fact:"Blauwe bessen zijn een van de rijkste bronnen van antioxidanten van alle vruchten.",
+    spacing:100, rowSpacing:150, water:2, height:120, potDepth:40, potSize:'xl',
+    good:[45,41,70,43], bad:[],
+    goodNote:"Afrikaantjes houden ongedierte weg; lavendel en citroenmelisse trekken bijen aan; calendula helpt ook",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:54, name:"Kruisbes",      emoji:"🟢", cat:"Fruit",   in:[],          out:[2,3],       h:[6,7],         days:365,
+    tip:"Doornige struik — handschoenen aan bij oogsten",
+    fact:"Kruisbessen worden zowel rauw als verwerkt gegeten — kruisbessengelei is een klassieker in de Britse keuken.",
+    spacing:120, rowSpacing:150, water:2, height:100, potDepth:35, potSize:'xl',
+    good:[15,11,45,41], bad:[],
+    goodNote:"Knoflook en bieslook beschermen tegen meeldauw; afrikaantjes en lavendel houden ongedierte weg",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:55, name:"Rode bes",      emoji:"🔴", cat:"Fruit",   in:[],          out:[2,3],       h:[6,7],         days:365,
+    tip:"Verdraagt lichte schaduw beter dan andere bessenstruiken",
+    fact:"Rode bessen bevatten meer vitamine C dan sinaasappelen en zijn een van de zuurste vruchten.",
+    spacing:100, rowSpacing:120, water:2, height:120, potDepth:35, potSize:'xl',
+    good:[45,41,70,11], bad:[],
+    goodNote:"Afrikaantjes en lavendel houden ongedierte weg; citroenmelisse trekt bestuivers aan; knoflook beschermt",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:56, name:"Braam",         emoji:"🫐", cat:"Fruit",   in:[],          out:[3,4],       h:[7,8,9],       days:365,
+    tip:"Wilde groeier — geef hem een stevig rek of gaas",
+    fact:"Bramen groeien in het wild langs bijna alle heggen in Nederland en zijn volledig gratis te oogsten.",
+    spacing:150, rowSpacing:200, water:1, height:200, potDepth:40, potSize:'xl',
+    good:[45,41,70], bad:[],
+    goodNote:"Afrikaantjes houden ongedierte weg; lavendel en citroenmelisse trekken bestuivers aan",
+    badNote:"Geen bekende slechte buren" },
+
+  // ══════════════════════════════════════════════════════
+  //  KRUIDEN
+  // ══════════════════════════════════════════════════════
+  { id:13, name:"Basilicum",     emoji:"🌿", cat:"Kruid",   in:[3,4,5],     out:[5,6],       h:[6,7,8,9],     days:60,
+    tip:"Knip de bloemen weg voor dichtere, smakelijkere bladgroei",
+    fact:"Basilicum is afkomstig uit India en werd in Europa pas populair door de Italiaanse keuken.",
+    spacing:20, rowSpacing:25, water:2, height:50, potDepth:15, potSize:'s',
+    good:[1,2,7,48,49,50,39], bad:[20],
+    goodNote:"Houdt bladluis weg bij tomaat, komkommer, paprika, kerstomaat en fruitgewassen; verbetert de smaak",
+    badNote:"Munt remt de groei van basilicum" },
+
+  { id:14, name:"Peterselie",    emoji:"🌱", cat:"Kruid",   in:[2,3,4],     out:[4,5],       h:[6,7,8,9,10],  days:70,
+    tip:"Langzame kiemer — week het zaad in lauw water voor je zaait",
+    fact:"Peterselie bevat meer vitamine C dan een sinaasappel en meer ijzer dan spinazie.",
+    spacing:10, rowSpacing:20, water:2, height:40, potDepth:15, potSize:'s',
+    good:[1,2,3,4,8,9,21,23,62], bad:[20],
+    goodNote:"Goede buur voor bijna alles — houdt wortelvlieg, koolvlieg en aspergekever weg",
+    badNote:"Munt remt de groei van peterselie" },
+
+  { id:15, name:"Bieslook",      emoji:"🌾", cat:"Kruid",   in:[2,3,4],     out:[3,4,5],     h:[5,6,7,8,9],   days:60,
+    tip:"Knip nooit meer dan een derde af tegelijk voor gezonde groei",
+    fact:"Bieslook is de kleinste soort uit de ui-familie en wordt al meer dan 5000 jaar gegeten in Azië.",
+    spacing:10, rowSpacing:20, water:2, height:30, potDepth:15, potSize:'s',
+    good:[1,2,3,4,39,48,51,52,53,54,55], bad:[12,29,30],
+    goodNote:"Houdt bladluis en schimmels weg bij tomaat, komkommer, sla, wortel, aardbei en fruitstruiken",
+    badNote:"Remt de groei van alle soorten bonen" },
+
+  { id:16, name:"Dille",         emoji:"🌿", cat:"Kruid",   in:[3,4,5],     out:[4,5,6],     h:[7,8,9],       days:60,
+    tip:"Zaai elke 3 weken voor continue oogst — gaat snel naar zaad",
+    fact:"Dillezaad werd in de middeleeuwen gebruikt als medicijn tegen buikpijn en slapeloosheid.",
+    spacing:20, rowSpacing:30, water:1, height:120, potDepth:20, potSize:'m',
+    good:[2,3,6,12,29], bad:[1,7,25],
+    goodNote:"Komkommer, sla, courgette, doperwten en sperziebonen zijn goede buren",
+    badNote:"Remt de groei van tomaat en paprika als de plant bloeit; venkel kruist ermee" },
+
+  { id:20, name:"Munt",          emoji:"🪴", cat:"Kruid",   in:[3,4],       out:[4,5],       h:[5,6,7,8,9],   days:60,
+    tip:"Plant in een pot — munt verspreidt zich anders door de hele tuin",
+    fact:"Er bestaan meer dan 600 muntsoorten — van pepermunt tot chocolademunt en ananasmelisse.",
+    spacing:30, rowSpacing:40, water:2, height:50, potDepth:20, potSize:'m',
+    good:[3,8,7,12,36,2], bad:[14,13],
+    goodNote:"Houdt mieren, bladluis en koolvlieg weg bij sla, broccoli, paprika, paksoi en komkommer",
+    badNote:"Remt de groei van peterselie en basilicum als ze te dicht bij staan" },
+
+  { id:65, name:"Rozemarijn",    emoji:"🌿", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[6,7,8,9],     days:90,
+    tip:"Vaste plant — wordt een grote struik, snoeien houdt hem compact",
+    fact:"Rozemarijn heeft de reputatie het geheugen te versterken — in de oudheid droegen studenten er kransen van.",
+    spacing:50, rowSpacing:60, water:1, height:80, potDepth:25, potSize:'l',
+    good:[7,8,32,33,34,36,59,60,61,4,3], bad:[],
+    goodNote:"Houdt koolvlieg, wortelluizen en diverse rupsen weg bij vrijwel alle koolsoorten en wortels",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:66, name:"Tijm",          emoji:"🌱", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[5,6,7,8,9],   days:70,
+    tip:"Vaste plant, droogtebestendig — ideaal in kruidenbak",
+    fact:"Tijm werd door de Egyptenaren gebruikt bij het balsemen van mummies — een van de sterkste natuurlijke antiseptica.",
+    spacing:25, rowSpacing:30, water:1, height:25, potDepth:15, potSize:'s',
+    good:[7,8,22,1,2,32,33], bad:[],
+    goodNote:"Houdt koolvlieg weg bij koolsoorten en verbetert de smaak van tomaat, paprika, aubergine en komkommer",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:67, name:"Oregano",       emoji:"🌿", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[6,7,8,9],     days:70,
+    tip:"Vaste plant — bloemen aanhouden voor de bijen",
+    fact:"Oregano-olie is een van de krachtigste natuurlijke antibacteriële stoffen die bekend zijn.",
+    spacing:25, rowSpacing:30, water:1, height:40, potDepth:15, potSize:'s',
+    good:[1,2,7,22,52], bad:[],
+    goodNote:"Verbetert de smaak van tomaat, komkommer, paprika, aubergine en druiven door vluchtige stoffen",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:68, name:"Salie",         emoji:"🌿", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[6,7,8],       days:80,
+    tip:"Vaste plant — knip regelmatig voor dichtere groei",
+    fact:"Salie werd in de middeleeuwen gebruikt als tandpasta — de bladeren direct op het tandvlees wrijven.",
+    spacing:40, rowSpacing:50, water:1, height:50, potDepth:20, potSize:'m',
+    good:[8,32,33,34,36,37,59,60,61], bad:[10,11],
+    goodNote:"Houdt koolvlieg en rupsen weg bij alle koolsoorten — ideale buur voor de hele koolgroep",
+    badNote:"Ui en knoflook remmen de groei van salie" },
+
+  { id:69, name:"Koriander",     emoji:"🌿", cat:"Kruid",   in:[3,4,5],     out:[4,5,6],     h:[6,7,8],       days:50,
+    tip:"Snel naar zaad — meerdere keren per jaar zaaien voor doorlopende oogst",
+    fact:"Koriander is het meest gegeten kruid ter wereld — maar 15-20% van de mensen proeft het als zeep door een genmutatie.",
+    spacing:10, rowSpacing:20, water:2, height:50, potDepth:15, potSize:'s',
+    good:[2,1,3,5,6,12], bad:[],
+    goodNote:"Trekt zweefvliegen aan die bladluis opeten bij komkommer, tomaat, sla, radijs, courgette en doperwten",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:70, name:"Citroenmelisse", emoji:"🍋", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[6,7,8,9],     days:60,
+    tip:"Vaste plant — kan invasief worden, plant in een pot of begrens de wortel",
+    fact:"Citroenmelisse trekt bijen zo sterk aan dat imkers hun handen ermee insmeren om bijen te kalmeren.",
+    spacing:40, rowSpacing:50, water:2, height:60, potDepth:20, potSize:'m',
+    good:[1,2,42,43,51,52,53,54,55,56], bad:[],
+    goodNote:"Trekt bijen aan voor bestuiving bij tomaat, komkommer, fruitstruiken en bessen",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:71, name:"Kervel",        emoji:"🌿", cat:"Kruid",   in:[3,4,5],     out:[3,4,5],     h:[5,6,7],       days:40,
+    tip:"Houdt van halfschaduw — perfect onder hogere planten",
+    fact:"Kervel is een van de vier klassieke Franse fines herbes en wordt bijna nooit verhit — altijd rauw toevoegen.",
+    spacing:15, rowSpacing:20, water:2, height:40, potDepth:15, potSize:'s',
+    good:[3,4,5,26,63], bad:[],
+    goodNote:"Wortel, radijs, sla, rucola en postelein zijn goede buren; verbetert smaak van naburige planten",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:72, name:"Dragon",        emoji:"🌿", cat:"Kruid",   in:[2,3],       out:[4,5],       h:[6,7,8,9],     days:80,
+    tip:"Franse dragon is aromatischer dan Russische — let op het ras",
+    fact:"Dragon is het enige kruid dat uitsluitend vegetatief wordt vermeerderd — zaad is steriel.",
+    spacing:40, rowSpacing:50, water:1, height:80, potDepth:20, potSize:'m',
+    good:[3,2,1], bad:[],
+    goodNote:"Verbetert de groei en smaak van komkommer, sla en tomaat door aromatische vluchtige stoffen",
+    badNote:"Geen bekende slechte buren" },
+
+  // ══════════════════════════════════════════════════════
+  //  BLOEMEN
+  // ══════════════════════════════════════════════════════
+  { id:40, name:"Zonnebloem",    emoji:"🌻", cat:"Bloem",   in:[3,4],       out:[4,5],       h:[7,8,9],       days:70,
+    tip:"Zaai direct buiten na de laatste vorst, houdt van volle zon",
+    fact:"Een zonnebloem draait zijn gezicht naar de zon — maar alleen als hij jong is. Volwassen zonnebloemhoofden staan vast naar het oosten.",
+    spacing:45, rowSpacing:60, water:1, height:200, potDepth:30, potSize:'l',
+    good:[1,2,38,12,6,18], bad:[],
+    goodNote:"Trekt bijen en vlinders aan; geeft schaduw aan lagere planten; groeit goed bij maïs, tomaat en komkommer",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:41, name:"Lavendel",      emoji:"💜", cat:"Bloem",   in:[2,3],       out:[4,5],       h:[6,7,8],       days:90,
+    tip:"Zaai vroeg binnen, kiemt langzaam — geduld loont",
+    fact:"Lavendel werd door de Romeinen gebruikt om badwater te parfumeren — de naam komt van het Latijnse 'lavare' (wassen).",
+    spacing:40, rowSpacing:50, water:1, height:60, potDepth:20, potSize:'m',
+    good:[1,13,3,39,51,52,53,54,55,56], bad:[],
+    goodNote:"Houdt bladluis, muggen en motten weg bij tomaat, sla, aardbei en alle fruitstruiken; trekt vlinders aan",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:42, name:"Nasturtium",    emoji:"🌸", cat:"Bloem",   in:[3,4],       out:[4,5],       h:[6,7,8,9],     days:55,
+    tip:"Bloemen en bladeren zijn eetbaar — lekker in salades",
+    fact:"Nasturtium werkt als een lokgewas — bladluizen verkiezen het boven de meeste groenten en lokken zo de bladluis weg.",
+    spacing:25, rowSpacing:30, water:1, height:30, potDepth:15, potSize:'s',
+    good:[2,1,3,4,48,49,50], bad:[],
+    goodNote:"Lokt bladluis weg van komkommer, tomaat, sla, wortel en kerstomaat als lokgewas",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:43, name:"Calendula",     emoji:"🟠", cat:"Bloem",   in:[2,3],       out:[3,4],       h:[6,7,8,9,10],  days:50,
+    tip:"Zeer makkelijk, zaait zichzelf opnieuw in — bijna niet te doden",
+    fact:"Calendulabloemen zijn eetbaar en worden al eeuwen gebruikt als goedkope saffraan-vervanger om gerechten geel te kleuren.",
+    spacing:25, rowSpacing:35, water:1, height:50, potDepth:15, potSize:'s',
+    good:[1,2,3,4,6,7,9,27,29,30,48,49,50], bad:[],
+    goodNote:"Houdt wortelknobbelaaltjes weg bij bijna alle groenten; trekt nuttige insecten aan",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:44, name:"Cosmea",        emoji:"🌺", cat:"Bloem",   in:[3,4],       out:[4,5],       h:[7,8,9,10],    days:60,
+    tip:"Bloeit de hele zomer, houdt van arme grond — niet te veel voeden",
+    fact:"Cosmea is afkomstig uit Mexico en werd in 1787 vanuit Madrid naar Europa gebracht.",
+    spacing:30, rowSpacing:40, water:1, height:100, potDepth:20, potSize:'m',
+    good:[1,13,16,45], bad:[],
+    goodNote:"Trekt zweefvliegen aan die bladluis opeten bij tomaat en basilicum; goede buur van afrikaantjes",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:45, name:"Afrikaantje",   emoji:"🌼", cat:"Bloem",   in:[3,4],       out:[4,5],       h:[6,7,8,9,10],  days:50,
+    tip:"Ideale borderbloem tegen plaaginsecten in de moestuin",
+    fact:"Afrikaantjes scheiden via de wortels een stof af die wittevlieg, bladluis en aaltjes actief verdrijft.",
+    spacing:20, rowSpacing:25, water:2, height:30, potDepth:15, potSize:'s',
+    good:[1,2,3,4,5,6,7,8,9,22,29,30,32,33,34,39,48,57,58,59,60,61,64], bad:[],
+    goodNote:"Plant tussen alles — houdt wittevlieg, bladluis en aaltjes weg bij vrijwel alle groenten en fruit",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:46, name:"Lathyrus",      emoji:"🌷", cat:"Bloem",   in:[2,3],       out:[3,4],       h:[6,7,8],       days:75,
+    tip:"Week zaden een nacht in water voor het zaaien voor betere kieming",
+    fact:"Lathyrus of pronkerwt heeft een van de sterkste geuren van alle tuinbloemen — een geur die parfumeurs nabootsen.",
+    spacing:20, rowSpacing:30, water:2, height:150, potDepth:20, potSize:'m',
+    good:[3,13,70], bad:[],
+    goodNote:"Trekt bijen en hommels aan; sla en basilicum zijn goede buren; citroenmelisse trekt extra bestuivers",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:47, name:"Borage",        emoji:"🔵", cat:"Bloem",   in:[3,4],       out:[4,5],       h:[6,7,8,9],     days:55,
+    tip:"Bloemen zijn eetbaar en smaken als komkommer — mooi in drankjes",
+    fact:"Borage was bij de Romeinen een symbool van moed — soldaten dronken wijn met borgebloemen voor de strijd.",
+    spacing:30, rowSpacing:40, water:1, height:60, potDepth:20, potSize:'m',
+    good:[2,1,3,18,6,49,50,31], bad:[],
+    goodNote:"Trekt bijen aan en verbetert groei van tomaten, komkommers, courgette, pompoen, meloen en tuinbonen",
+    badNote:"Geen bekende slechte buren" },
+
+  // ══════════════════════════════════════════════════════
+  //  NOTEN
+  // ══════════════════════════════════════════════════════
+  { id:73, name:"Walnoot",       emoji:"🌰", cat:"Noten",   in:[],          out:[3,4],       h:[9,10],        days:1825,
+    tip:"Boom die tientallen jaren oogst geeft — plant op grote afstand van andere planten",
+    fact:"Walnootbomen scheiden via de wortels juglone uit — een giftige stof voor de meeste planten in een straal van 15 meter.",
+    spacing:800, rowSpacing:800, water:1, height:2000, potDepth:60, potSize:'xl',
+    good:[], bad:[1,2,3,4,5,6,7,8,9,10,11,12,13,39],
+    goodNote:"Geen goede tuinburen — plant ver weg van moestuin",
+    badNote:"Juglone in de wortels is giftig voor bijna alle moestuin- en fruitplanten in een straal van 15 meter" },
+
+  { id:74, name:"Hazelnoot",     emoji:"🌰", cat:"Noten",   in:[],          out:[2,3],       h:[9,10],        days:1460,
+    tip:"Plant twee struiken voor bevruchting — bloeit in februari via de wind",
+    fact:"Hazelnoten hangen als katjes aan de boom al in januari — een van de vroegste bloeiende planten van het jaar.",
+    spacing:400, rowSpacing:500, water:1, height:400, potDepth:50, potSize:'xl',
+    good:[45,41,70,43], bad:[],
+    goodNote:"Lavendel, citroenmelisse, afrikaantjes en calendula als bodembedekker eronder — trekken bestuivers aan",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:75, name:"Amandel",       emoji:"🤎", cat:"Noten",   in:[],          out:[3,4],       h:[8,9],         days:1460,
+    tip:"Bloeit vroeg — vorst kan de bloesem beschadigen, plant op beschutte plek",
+    fact:"Amandelen zijn geen echte noten maar steenvruchten — ze zijn verwant aan perziken en kersen.",
+    spacing:400, rowSpacing:500, water:1, height:500, potDepth:50, potSize:'xl',
+    good:[41,45,70,43], bad:[],
+    goodNote:"Lavendel trekt bestuivers aan voor de vroege bloei; afrikaantjes, citroenmelisse en calendula helpen ook",
+    badNote:"Geen bekende slechte buren" },
+
+  { id:76, name:"Kastanje",      emoji:"🌰", cat:"Noten",   in:[],          out:[3,4],       h:[9,10],        days:1825,
+    tip:"Zoete kastanje — niet de paardenkastanje. Heeft veel ruimte nodig",
+    fact:"Een kastanjeboom kan 500-1000 jaar oud worden en geeft pas na 20-40 jaar zijn eerste flinke oogst.",
+    spacing:1000, rowSpacing:1000, water:1, height:2500, potDepth:60, potSize:'xl',
+    good:[45,41,70], bad:[],
+    goodNote:"Afrikaantjes, lavendel en citroenmelisse als bodembedekker trekken bestuivers aan",
+    badNote:"Geen bekende slechte buren" },
+];
+
+const MONTHS = ["Jan","Feb","Mrt","Apr","Mei","Jun","Jul","Aug","Sep","Okt","Nov","Dec"];
+const MONTH_NAMES = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
+const CATEGORIES = ["Groente","Fruit","Kruid","Bloem","Noten"];
+const NOW = new Date();
+const CUR_MONTH = NOW.getMonth() + 1;
+const CUR_YEAR = NOW.getFullYear();
+
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+let state = {
+  tab: 'kalender',
+  selectedMonth: CUR_MONTH,
+  search: '',
+  category: 'Groente',
+  entries: [],
+  geschYear: 'alle',
+  geschCrop: '',
+};
+
+// Safe storage wrapper — works on file://, Safari, and all browsers
+const Store = {
+  _mem: {},
+  get(key) {
+    try { return localStorage.getItem(key); } catch(e) { return this._mem[key] || null; }
+  },
+  set(key, val) {
+    try { localStorage.setItem(key, val); } catch(e) { this._mem[key] = val; }
+  }
+};
+
+function loadEntries() {
+  try {
+    const raw = Store.get('zaaikalender-v1');
+    if (raw) state.entries = JSON.parse(raw);
+  } catch(e) {}
+}
+function saveEntries(list) {
+  if (list !== undefined) state.entries = list;
+  try { Store.set('zaaikalender-v1', JSON.stringify(state.entries)); } catch(e) {}
+}
+loadEntries();
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('nl-NL', { day:'numeric', month:'long' });
+}
+function expectedHarvest(crop, sowDate) {
+  if (!sowDate) return null;
+  const d = new Date(sowDate);
+  d.setDate(d.getDate() + crop.days);
+  return d.toISOString().split('T')[0];
+}
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((new Date(dateStr) - now) / 86400000);
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function cropById(id) { return CROPS.find(c => c.id === id); }
+
+function statusBadge(entry) {
+  if (entry.harvestedDate) return `<span class="status-badge badge-harvested">🧺 Geoogst</span>`;
+  if (entry.transplantedDate) return `<span class="status-badge badge-transplanted">🌿 Uitgeplant</span>`;
+  return `<span class="status-badge badge-sown">🌱 Gezaaid</span>`;
+}
+
+function countdownHtml(entry, crop) {
+  if (entry.harvestedDate) return '';
+  const hd = expectedHarvest(crop, entry.sowDate);
+  const d = daysUntil(hd);
+  if (d === null) return '';
+  const color = d < 0 ? 'var(--red)' : d < 14 ? 'var(--yellow)' : 'var(--green)';
+  const txt = d < 0 ? `${Math.abs(d)} dagen over tijd` : d === 0 ? 'Vandaag oogsten! 🎉' : `~${d} dagen tot verwachte oogst`;
+  return `<div class="countdown" style="color:${color}">${txt}</div>`;
+}
+
+// Returns info about when this entry can go outside
+function outsideReadiness(entry, crop) {
+  if (entry.transplantedDate || entry.harvestedDate) return null; // already done
+  if (!crop.out || crop.out.length === 0) return null; // stays inside always
+  if (entry.method === 'outdoor') return null; // already sown outside
+
+  const sowDate = new Date(entry.sowDate);
+  const sowMonth = sowDate.getMonth() + 1;
+
+  // Find the first outdoor month that is >= sow month (or next year)
+  const firstOutMonth = crop.out[0]; // already sorted earliest first
+
+  // Build a target date: first day of the first valid outdoor month
+  // after the sow date
+  let targetYear = sowDate.getFullYear();
+  let targetMonth = null;
+
+  // Find earliest outdoor month that comes after (or same month as) sowing
+  for (const m of [...crop.out].sort((a,b)=>a-b)) {
+    if (m >= sowMonth) { targetMonth = m; break; }
+  }
+  // If none found in same year, take first month of next year
+  if (!targetMonth) {
+    targetMonth = [...crop.out].sort((a,b)=>a-b)[0];
+    targetYear++;
+  }
+
+  const targetDate = new Date(targetYear, targetMonth - 1, 1);
+  const now = new Date(); now.setHours(0,0,0,0);
+  const daysLeft = Math.round((targetDate - now) / 86400000);
+
+  return {
+    month: targetMonth,
+    year: targetYear,
+    daysLeft,
+    monthName: MONTH_NAMES[targetMonth - 1],
+  };
+}
+
+function outsideReadinessHtml(entry, crop) {
+  const info = outsideReadiness(entry, crop);
+  if (!info) return '';
+
+  if (info.daysLeft < 0) {
+    // Can go outside now (month has passed — if still active something's off, show gentle nudge)
+    return `<div class="outside-badge outside-now">☀️ Kan nu naar buiten!</div>`;
+  } else if (info.daysLeft === 0) {
+    return `<div class="outside-badge outside-now">☀️ Vandaag kan het naar buiten!</div>`;
+  } else if (info.daysLeft <= 7) {
+    return `<div class="outside-badge outside-soon">🌤 Bijna buiten: ${info.monthName} (nog ${info.daysLeft}d)</div>`;
+  } else {
+    return `<div class="outside-badge outside-later">🏠→☀️ Buiten vanaf: ${info.monthName}${info.year !== CUR_YEAR ? ' ' + info.year : ''} (${info.daysLeft}d)</div>`;
+  }
+}
+
+function monthPills(months, cls, cur) {
+  if (!months.length) return '<span style="font-size:10px;color:var(--text3)">—</span>';
+  return months.map(m =>
+    `<span class="month-pill ${cls}${m===cur?' pill-current':''}">${MONTHS[m-1]}</span>`
+  ).join('');
+}
+
+function notify(msg) {
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.textContent = msg;
+  document.getElementById('notifs').appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+// ════════════════════════════════════════════════════════
+//  TAB SWITCH
+// ════════════════════════════════════════════════════════
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['kalender','gewassen','logboek','geschiedenis'][i] === tab);
+  });
+  render();
+}
+
+
+
+// ════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  if (state.tab === 'kalender') app.innerHTML = renderKalender();
+  else if (state.tab === 'gewassen') app.innerHTML = renderGewassen();
+  else if (state.tab === 'logboek') app.innerHTML = renderLogboek();
+  else if (state.tab === 'geschiedenis') app.innerHTML = renderGeschiedenis();
+  else app.innerHTML = renderGeschiedenis();
+  attachListeners();
+}
+
+// ── Kalender ──────────────────────────────────────────
+function renderKalender() {
+  const monthStrip = MONTHS.map((m, i) => {
+    const mn = i + 1;
+    const isCur = mn === CUR_MONTH;
+    const isActive = mn === state.selectedMonth;
+    return `<button class="month-btn${isActive?' active':''}" onclick="selectMonth(${mn})">
+      ${m}${isCur && !isActive ? '<span class="month-dot"></span>' : ''}
+    </button>`;
+  }).join('');
+
+  const filtered = CROPS.filter(c =>
+    c.in.includes(state.selectedMonth) || c.out.includes(state.selectedMonth) || c.h.includes(state.selectedMonth)
+  );
+
+  const cards = filtered.length === 0
+    ? `<div class="empty"><div class="empty-icon">🌑</div><h3>Niets te doen deze maand</h3><p>Kies een andere maand of bekijk alle gewassen.</p></div>`
+    : filtered.map(c => renderKalenderCard(c)).join('');
+
+  return `
+    <div class="month-strip">${monthStrip}</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Zaaien binnen</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Zaaien buiten</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Oogsten</span>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px;font-style:italic">
+      <strong style="color:var(--green)">${filtered.length}</strong> gewassen in ${MONTH_NAMES[state.selectedMonth-1]}
+    </p>
+    <div class="cards">${cards}</div>`;
+}
+
+function renderKalenderCard(c) {
+  const m = state.selectedMonth;
+  const tags = [
+    c.in.includes(m) ? `<span class="tag tag-green">🏠 Binnen</span>` : '',
+    c.out.includes(m) ? `<span class="tag tag-yellow">☀️ Buiten</span>` : '',
+    c.h.includes(m) ? `<span class="tag tag-red">🧺 Oogsten</span>` : '',
+  ].join('');
+  return `<div class="card" onclick="openCropModal(${c.id})">
+    <div class="card-row">
+      <span class="card-emoji">${c.emoji}</span>
+      <div><div class="card-name">${c.name}</div><div class="card-sub">${c.days} dagen groeiduur · ${c.cat}${c.height?` · ↕ ${c.height}cm`:''}</div></div>
+      <div class="card-tags">${tags}</div>
+    </div>
+  </div>`;
+}
+
+// ── Gewassen ──────────────────────────────────────────
+function filterCrops() {
+  const q = state.search.toLowerCase();
+  return CROPS.filter(c => {
+    const matchCat = c.cat === state.category;
+    const matchQ = c.name.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+}
+
+function renderCropCard(c) {
+  const cur = CUR_MONTH;
+  return `<div class="card" onclick="openCropModal(${c.id})">
+      <div class="card-row">
+        <span class="card-emoji">${c.emoji}</span>
+        <div><div class="card-name">${c.name}</div><div class="card-sub">${c.days}d · ${c.cat}${c.spacing ? ` · 📏 ${c.spacing}cm` : ''}${c.height ? ` · ${'💧'.repeat(c.water)} · ↕ ${c.height}cm` : ''}</div></div>
+      </div>
+      <div class="full-card-grid">
+        <div class="full-card-section"><label>🏠 Zaaien binnen</label><div class="month-pills">${monthPills(c.in,'pill-green',cur)}</div></div>
+        <div class="full-card-section"><label>☀️ Zaaien buiten</label><div class="month-pills">${monthPills(c.out,'pill-yellow',cur)}</div></div>
+        <div class="full-card-section"><label>🧺 Oogsten</label><div class="month-pills">${monthPills(c.h,'pill-red',cur)}</div></div>
+      </div>
+      ${(c.good && c.good.length) ? `<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--text3)">✅ buren:</span>
+        ${c.good.slice(0,4).map(id=>{const cr=cropById(id);return cr?`<span style="font-size:11px;color:var(--green)">${cr.emoji} ${cr.name}</span>`:''}).join('<span style="color:var(--border2)">·</span>')}
+        ${c.good.length>4?`<span style="font-size:10px;color:var(--text3)">+${c.good.length-4}</span>`:''}
+      </div>` : ''}
+    </div>`;
+}
+
+function renderGewassen() {
+  const filtered = filterCrops();
+  const catBtns = CATEGORIES.map(cat =>
+    `<button class="filter-btn${state.category===cat?' active':''}" onclick="setCategory('${cat}')">${cat}</button>`
+  ).join('');
+
+  const cardsHtml = filtered.length === 0
+    ? `<div class="empty"><div class="empty-icon">🔍</div><h3>Geen gewassen gevonden</h3><p>Probeer een andere zoekterm.</p></div>`
+    : `<div class="cards">${filtered.map(renderCropCard).join('')}</div>`;
+
+  return `
+    <div class="filter-row">
+      <input class="search-input" style="min-width:120px;max-width:180px" placeholder="🔍 Zoek..." value="${state.search}" oninput="setSearch(this.value)">
+      ${catBtns}
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Zaaien binnen</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Zaaien buiten</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Oogsten</span>
+    </div>
+    <div id="gewassen-results">${cardsHtml}</div>`;
+}
+
+// ── Logboek ───────────────────────────────────────────
+function renderLogboek() {
+  const active = state.entries.filter(e => !e.harvestedDate);
+  const harvested = state.entries.filter(e => e.harvestedDate);
+
+  let body = '';
+  if (state.entries.length === 0) {
+    body = `<div class="empty">
+      <div class="empty-icon">🪴</div>
+      <h3>Nog niets gezaaid</h3>
+      <p>Voeg je eerste gewas toe om bij te houden wat je zaait en oogst.</p>
+      <button class="add-btn" onclick="openAddModal()">+ Eerste gewas toevoegen</button>
+    </div>`;
+  } else {
+    if (active.length > 0) {
+      body += `<div class="section-header"><span class="section-label">🌱 Actief groeien</span><span class="section-count">${active.length}</span></div>
+        <div class="cards" style="margin-bottom:24px">${active.map(renderLogEntry).join('')}</div>`;
+    } else {
+      body += `<div class="empty" style="padding:40px 0">
+        <div class="empty-icon" style="font-size:40px">✅</div>
+        <h3>Alles geoogst!</h3>
+        <p>Geen actieve planten meer. Voeg nieuwe toe of bekijk je geschiedenis.</p>
+      </div>`;
+    }
+    if (harvested.length > 0) {
+      body += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">📖</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${harvested.length} geoogste gewas${harvested.length!==1?'sen':''}</div>
+            <div style="font-size:11px;color:var(--text3)">Bekijk je volledige oogstgeschiedenis</div>
+          </div>
+        </div>
+        <button onclick="switchTab('geschiedenis')" style="background:var(--green);border:none;border-radius:8px;padding:8px 16px;color:#0a1a0a;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+          Naar geschiedenis →
+        </button>
+      </div>`;
+    }
+  }
+
+  return `
+    <div class="logboek-header">
+      <div>
+        <div class="logboek-title">Mijn Zaailijst ${CUR_YEAR}</div>
+        <div class="logboek-sub">${active.length} actief · ${harvested.length} geoogst</div>
+      </div>
+      ${state.entries.length > 0 ? `<button class="add-btn" onclick="openAddModal()">+ Toevoegen</button>` : ''}
+    </div>
+    ${body}
+`;
+}
+
+function renderLogEntry(entry, dimmed=false) {
+  const crop = cropById(entry.cropId);
+  if (!crop) return '';
+  const hd = expectedHarvest(crop, entry.sowDate);
+  return `<div class="log-card${dimmed?' dimmed':''}" onclick="openEntryModal('${entry.id}')">
+    <div class="log-card-top">
+      <span style="font-size:28px;min-width:34px">${crop.emoji}</span>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-weight:700;font-size:14px;color:var(--text)">${crop.name}</span>
+          ${statusBadge(entry)}
+          ${entry.location ? `<span style="font-size:11px;color:var(--text3)">📍 ${entry.location}</span>` : ''}
+        </div>
+        <div class="log-meta">
+          <span class="log-meta-item">🌱 Gezaaid: <strong>${fmtDate(entry.sowDate)}</strong></span>
+          ${entry.transplantedDate ? `<span class="log-meta-item">🌿 Uitgeplant: <strong style="color:var(--yellow)">${fmtDate(entry.transplantedDate)}</strong></span>` : ''}
+          ${entry.harvestedDate
+            ? `<span class="log-meta-item">🧺 Geoogst: <strong style="color:var(--red)">${fmtDate(entry.harvestedDate)}</strong></span>`
+            : `<span class="log-meta-item">🗓 Verwacht: <strong style="color:var(--green)">${fmtDate(hd)}</strong></span>`}
+        </div>
+        ${countdownHtml(entry, crop)}
+        ${outsideReadinessHtml(entry, crop)}
+        ${entry.notes ? `<div class="log-notes">"${entry.notes}"</div>` : ''}
+      </div>
+      ${entry.amount ? `<div class="amount-box"><div class="amount-num">${entry.amount}</div><div class="amount-label">stuks</div></div>` : ''}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+//  MODALS
+// ════════════════════════════════════════════════════════
+function closeModals() { document.getElementById('modals').innerHTML = ''; }
+function showModal(html) {
+  document.getElementById('modals').innerHTML =
+    `<div class="overlay" onclick="closeModals()">${html}</div>`;
+  document.querySelector('.overlay').addEventListener('click', e => { if(e.target.classList.contains('overlay')) closeModals(); });
+}
+
+// ── Crop info modal ───────────────────────────────────
+function companionChips(ids, cls) {
+  return ids.map(id => {
+    const cr = cropById(id);
+    if (!cr) return '';
+    return `<span class="companion-chip ${cls}" onclick="event.stopPropagation();closeModals();openCropModal(${id})">${cr.emoji} ${cr.name}</span>`;
+  }).join('');
+}
+
+function openCropModal(cropId) {
+  const c = cropById(cropId);
+  const cur = CUR_MONTH;
+
+  const spacingHtml = c.spacing ? `
+    <div class="spacing-box">
+      <div class="spacing-pill">
+        <div class="spacing-num">${c.spacing}</div>
+        <div class="spacing-unit">cm</div>
+        <div class="spacing-label">tussen planten</div>
+      </div>
+      ${c.rowSpacing ? `<div class="spacing-pill">
+        <div class="spacing-num">${c.rowSpacing}</div>
+        <div class="spacing-unit">cm</div>
+        <div class="spacing-label">tussen rijen</div>
+      </div>` : ''}
+    </div>` : '';
+
+  // ── Water / Height / Pot profile ──
+  const waterLabels = ['','Weinig water','Matig water','Veel water'];
+  const waterDrops = [1,2,3].map(i =>
+    `<span class="water-drop${c.water>=i?' on':''}">💧</span>`).join('');
+  const waterColor = c.water===1?'var(--green)':c.water===2?'var(--yellow)':'#6ab0e0';
+
+  const heightSegs = 5;
+  const heightLevel = c.height<=30?1:c.height<=60?2:c.height<=100?3:c.height<=150?4:5;
+  const heightBars = Array.from({length:heightSegs},(_,i)=>
+    `<div class="height-seg${i<heightLevel?' on':''}" style="height:${40+i*12}%${i<heightLevel?`;background:var(--green)`:''}"></div>`).join('');
+  const heightLabel = c.height<30?'Klein (<30cm)':c.height<70?'Middelhoog':c.height<130?'Hoog':c.height<170?'Zeer hoog':'Enorm hoog (2m+)';
+
+  const potSizeMap = {
+    s:  {icon:'🪴', label:'Klein (Ø 15–20cm)', desc:'Kleine pot of bakje volstaat. Ideaal voor vensterbank of balkon.'},
+    m:  {icon:'🪣', label:'Middel (Ø 25–35cm)', desc:'Middelgrote pot of kistje. Past op balkon of terras.'},
+    l:  {icon:'🧺', label:'Groot (Ø 35–45cm)', desc:'Grote bak nodig. Genoeg diepte voor goede wortelvorming.'},
+    xl: {icon:'🛁', label:'Extra groot (Ø 45cm+)', desc:'Volle grond of extra grote bak aanbevolen. Heeft veel ruimte nodig.'},
+  };
+  const pot = potSizeMap[c.potSize] || potSizeMap['m'];
+
+  const profileHtml = `
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">🌱 Groeiprofiel</div>
+    <div class="profile-grid">
+      <div class="profile-card">
+        <div class="profile-label">💧 WATERBEHOEFTE</div>
+        <div class="water-bar">${waterDrops}</div>
+        <div class="profile-sub" style="color:${waterColor};font-weight:600;margin-top:4px">${waterLabels[c.water]}</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-label">📏 HOOGTE</div>
+        <div class="height-visual">${heightBars}</div>
+        <div class="profile-sub" style="margin-top:4px"><strong style="color:var(--green)">${c.height} cm</strong> · ${heightLabel}</div>
+      </div>
+      <div class="profile-card" style="grid-column:1/-1">
+        <div class="profile-label">🪴 POTMAAT / RUIMTE</div>
+        <div class="pot-visual">
+          <span class="pot-icon">${pot.icon}</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">${pot.label}</div>
+            <div class="pot-desc">${pot.desc}</div>
+            ${c.potDepth ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">Minimale diepte: <strong style="color:var(--yellow)">${c.potDepth} cm</strong></div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const companionHtml = (c.good && c.good.length) || (c.bad && c.bad.length) ? `
+    <div class="companion-section">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">🌿 Burenplanten</div>
+      ${c.good && c.good.length ? `
+        <div class="companion-title">✅ Goede buren</div>
+        <div class="companion-row">${companionChips(c.good,'companion-good')}</div>
+        ${c.goodNote ? `<div class="companion-note">${c.goodNote}</div>` : ''}
+      ` : ''}
+      ${c.bad && c.bad.length ? `
+        <div class="companion-title">❌ Slechte buren</div>
+        <div class="companion-row">${companionChips(c.bad,'companion-bad')}</div>
+        ${c.badNote ? `<div class="companion-note">${c.badNote}</div>` : ''}
+      ` : ''}
+    </div>` : '';
+
+  const html = `<div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="crop-modal-top" style="margin:0">
+        <span class="crop-modal-emoji">${c.emoji}</span>
+        <div>
+          <div class="crop-modal-name">${c.name}</div>
+          <span class="tag tag-green" style="margin-top:4px;display:inline-flex">${c.cat}</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeModals()">✕</button>
+    </div>
+    <div class="tip-box">💡 ${c.tip}</div>
+    ${c.fact ? `<div class="fact-box">🌿 ${c.fact}</div>` : ''}
+    <div class="info-grid">
+      <div class="info-box"><div class="info-label">⏱ GROEIDUUR</div><div class="info-value" style="color:var(--yellow)">${c.days} dagen</div></div>
+      <div class="info-box"><div class="info-label">📦 CATEGORIE</div><div class="info-value" style="color:var(--green)">${c.cat}</div></div>
+    </div>
+    ${profileHtml}
+    ${spacingHtml}
+    ${c.in.length ? `<div class="month-section"><div class="month-section-label">🏠 Zaaien binnen</div><div class="month-pills">${monthPills(c.in,'pill-green',cur)}</div></div>` : ''}
+    ${c.out.length ? `<div class="month-section"><div class="month-section-label">☀️ Buiten zaaien / uitplanten</div><div class="month-pills">${monthPills(c.out,'pill-yellow',cur)}</div></div>` : ''}
+    ${c.in.length && c.out.length ? `<div class="tip-box" style="margin-top:10px;background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.2)">🏠→☀️ Zaai binnen in <strong>${c.in.map(m=>MONTH_NAMES[m-1]).join(', ')}</strong>, zet daarna buiten in <strong>${c.out.map(m=>MONTH_NAMES[m-1]).join(', ')}</strong>.</div>` : ''}
+    ${c.h.length ? `<div class="month-section"><div class="month-section-label">🧺 Oogsten</div><div class="month-pills">${monthPills(c.h,'pill-red',cur)}</div></div>` : ''}
+    ${companionHtml}
+    <button class="action-btn" onclick="closeModals();openAddModalWithCrop(${cropId})">+ Toevoegen aan mijn zaailijst</button>
+  </div>`;
+  showModal(html);
+}
+
+// ── Add modal ─────────────────────────────────────────
+let addState = { step: 1, cropId: null, search: '', form: {} };
+
+function openAddModal() {
+  addState = { step:1, cropId:null, search:'', form:{ sowDate: NOW.toISOString().split('T')[0], method:'indoor', location:'', amount:'', notes:'' } };
+  renderAddModal();
+}
+function openAddModalWithCrop(cropId) {
+  addState = { step:2, cropId, search:'', form:{ sowDate: NOW.toISOString().split('T')[0], method:'indoor', location:'', amount:'', notes:'' } };
+  renderAddModal();
+}
+function renderAddModal() {
+  const c = addState.cropId ? cropById(addState.cropId) : null;
+  let body = '';
+  if (addState.step === 1) {
+    const q = addState.search.toLowerCase();
+    const items = CROPS.filter(c => c.name.toLowerCase().includes(q)).map(c =>
+      `<div class="crop-pick-item" onclick="pickCrop(${c.id})">
+        <span style="font-size:22px">${c.emoji}</span>
+        <span class="crop-pick-name">${c.name}</span>
+        <span class="crop-pick-meta">${c.days}d · ${c.cat}</span>
+      </div>`
+    ).join('');
+    body = `
+      <div class="steps"><div class="step done"></div><div class="step"></div></div>
+      <input class="search-input" style="width:100%;margin-bottom:10px" placeholder="🔍 Zoek gewas..." value="${addState.search}" oninput="addSearch(this.value)">
+      <div class="crop-pick-list">${items}</div>`;
+  } else if (addState.step === 2 && c) {
+    const f = addState.form;
+    const hd = expectedHarvest(c, f.sowDate);
+    body = `
+      <div class="steps"><div class="step done"></div><div class="step done"></div></div>
+      <div class="form-field">
+        <label class="form-label">📅 Zaaidatum</label>
+        <input type="date" class="form-input" id="f-sowDate" value="${f.sowDate}" onchange="updateAddForm('sowDate',this.value)">
+      </div>
+      <div class="form-field">
+        <label class="form-label">🏠 Zaaimethode</label>
+        <div class="method-toggle">
+          <button class="method-btn${f.method==='indoor'?' active':''}" onclick="updateAddForm('method','indoor')">🏠 Binnen</button>
+          <button class="method-btn${f.method==='outdoor'?' active':''}" onclick="updateAddForm('method','outdoor')">☀️ Buiten</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">📍 Locatie (optioneel)</label>
+        <input id="af-location" class="form-input" placeholder="bijv. kas, vensterbank, tuin…" value="${f.location}" oninput="addState.form.location=this.value">
+      </div>
+      <div class="form-field">
+        <label class="form-label">🔢 Aantal zaden (optioneel)</label>
+        <input id="af-amount" type="number" class="form-input" placeholder="bijv. 10" value="${f.amount}" oninput="addState.form.amount=this.value">
+      </div>
+      <div class="form-field">
+        <label class="form-label">📝 Notities (optioneel)</label>
+        <textarea id="af-notes" class="form-input" rows="2" placeholder="Variëteit, bijzonderheden…" oninput="addState.form.notes=this.value">${f.notes}</textarea>
+      </div>
+      ${hd ? `<div class="harvest-preview">🗓 Verwachte oogst: <strong>${fmtDate(hd)}</strong> <span style="color:var(--text3)">(~${c.days} dagen)</span></div>` : ''}
+      ${(()=>{
+        if (f.method !== 'outdoor' && c.out && c.out.length) {
+          const mockEntry = { sowDate: f.sowDate, method: f.method, transplantedDate: '', harvestedDate: '' };
+          const info = outsideReadiness(mockEntry, c);
+          if (info) {
+            const style = info.daysLeft <= 0 ? 'background:rgba(240,192,64,.18);border:1px solid rgba(240,192,64,.5);color:var(--yellow)' :
+                          info.daysLeft <= 7  ? 'background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);color:#c8a030' :
+                                                'background:rgba(126,200,160,.08);border:1px solid rgba(126,200,160,.2);color:var(--text3)';
+            const txt = info.daysLeft <= 0 ? '☀️ Kan nu al naar buiten!' :
+                        `🏠→☀️ Kan buiten vanaf: <strong style="color:var(--yellow)">${info.monthName}${info.year!==CUR_YEAR?' '+info.year:''}</strong> (${info.daysLeft} dagen)`;
+            return `<div style="border-radius:8px;padding:10px 12px;font-size:12px;margin-top:6px;${style}">${txt}</div>`;
+          }
+        }
+        return '';
+      })()}
+      <div class="btn-row">
+        <button class="btn-back" onclick="addState.step=1;renderAddModal()">← Terug</button>
+        <button class="btn-save" onclick="saveNewEntry()">✓ Opslaan in zaailijst</button>
+      </div>`;
+  }
+
+  const title = addState.step === 1 ? 'Kies een gewas' : `${c?.emoji} ${c?.name} toevoegen`;
+  showModal(`<div class="modal wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">${title}</div>
+      <button class="close-btn" onclick="closeModals()">✕</button>
+    </div>
+    ${body}
+  </div>`);
+}
+
+function addSearch(v) { addState.search = v; renderAddModal(); }
+function pickCrop(id) { addState.cropId = id; addState.step = 2; renderAddModal(); }
+function updateAddForm(k, v) {
+  addState.form[k] = v;
+  // Only re-render for fields that affect the UI (not plain text inputs)
+  if (k === 'sowDate' || k === 'method') renderAddModal();
+}
+
+function saveNewEntry() {
+  const f = addState.form;
+  if (!addState.cropId || !f.sowDate) return;
+  const entry = { id: uid(), cropId: addState.cropId, ...f, transplantedDate:'', harvestedDate:'', createdAt: NOW.toISOString() };
+  state.entries.unshift(entry);
+  saveEntries();
+  closeModals();
+  state.tab = 'logboek';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['kalender','gewassen','logboek','geschiedenis'][i]==='logboek'));
+  render();
+  notify('✓ Gewas toegevoegd aan zaailijst!');
+}
+
+// ── Entry detail modal ────────────────────────────────
+let entryEditState = {};
+function openEntryModal(id) {
+  const entry = state.entries.find(e => e.id === id);
+  if (!entry) return;
+  entryEditState = { ...entry, confirmDelete: false };
+  renderEntryModal();
+}
+
+function renderEntryModal() {
+  const e = entryEditState;
+  const c = cropById(e.cropId);
+  if (!c) return;
+  const hd = expectedHarvest(c, e.sowDate);
+
+  const deleteSection = e.confirmDelete
+    ? `<span style="font-size:12px;color:var(--red);flex:1;align-self:center">Weet je het zeker?</span>
+       <button class="btn-delete-confirm" onclick="deleteEntry('${e.id}')">Ja, verwijder</button>
+       <button class="btn-back" onclick="entryEditState.confirmDelete=false;renderEntryModal()">Annuleer</button>`
+    : `<button class="btn-delete" onclick="entryEditState.confirmDelete=true;renderEntryModal()">🗑</button>
+       <button class="btn-save" onclick="saveEntry()">✓ Opslaan</button>`;
+
+  showModal(`<div class="modal wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:30px">${c.emoji}</span>
+        <div>
+          <div class="modal-title" style="font-size:18px">${c.name}</div>
+          ${statusBadge(e)}
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeModals()">✕</button>
+    </div>
+    <div class="form-field">
+      <label class="form-label">📅 Zaaidatum</label>
+      <input type="date" class="form-input" value="${e.sowDate}" onchange="updateEntryField('sowDate',this.value)">
+    </div>
+    <div class="form-field">
+      <label class="form-label">📍 Locatie</label>
+      <input id="ef-location" class="form-input" placeholder="bijv. kas, vensterbank…" value="${e.location||''}" oninput="entryEditState.location=this.value">
+    </div>
+    <div class="form-field">
+      <label class="form-label">🔢 Aantal</label>
+      <input id="ef-amount" type="number" class="form-input" value="${e.amount||''}" oninput="entryEditState.amount=this.value">
+    </div>
+    <div class="form-field">
+      <label class="form-label">🌿 Uitgeplant op</label>
+      <input type="date" class="form-input" value="${e.transplantedDate||''}" onchange="updateEntryField('transplantedDate',this.value)">
+    </div>
+    <div class="form-field">
+      <label class="form-label">🧺 Geoogst op</label>
+      <input type="date" class="form-input" value="${e.harvestedDate||''}" onchange="updateEntryField('harvestedDate',this.value)">
+    </div>
+    <div class="form-field">
+      <label class="form-label">📝 Notities</label>
+      <textarea id="ef-notes" class="form-input" rows="2" oninput="entryEditState.notes=this.value">${e.notes||''}</textarea>
+    </div>
+    ${hd ? `<div class="harvest-preview">🗓 Verwachte oogst: <strong>${fmtDate(hd)}</strong>${!e.harvestedDate ? ' ' + (()=>{const d=daysUntil(hd);return d<0?`<span style="color:var(--red)">(${Math.abs(d)}d over tijd)</span>`:d===0?'<span style="color:var(--yellow)">(vandaag!)</span>':`<span style="color:var(--text3)">(${d}d)</span>`})() : ''}</div>` : ''}
+    ${(()=>{
+      const info = outsideReadiness(e, c);
+      if (!info) return '';
+      const style = info.daysLeft <= 0 ? 'background:rgba(240,192,64,.18);border:1px solid rgba(240,192,64,.5);color:var(--yellow)' :
+                    info.daysLeft <= 7  ? 'background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);color:#c8a030' :
+                                          'background:rgba(126,200,160,.08);border:1px solid rgba(126,200,160,.2);color:var(--text3)';
+      const icon = info.daysLeft <= 0 ? '☀️' : info.daysLeft <= 7 ? '🌤' : '🏠';
+      const txt = info.daysLeft <= 0 ? 'Kan nu naar buiten!' :
+                  `Buiten vanaf: <strong style="color:var(--yellow)">${info.monthName}${info.year!==CUR_YEAR?' '+info.year:''}</strong> (nog ${info.daysLeft} dagen)`;
+      return `<div style="border-radius:8px;padding:10px 12px;font-size:12px;margin-top:6px;${style}">${icon} ${txt}</div>`;
+    })()}
+    <div class="btn-row">${deleteSection}</div>
+  </div>`);
+}
+
+function updateEntryField(k, v) {
+  entryEditState[k] = v;
+  if (k === 'sowDate' || k === 'transplantedDate' || k === 'harvestedDate') {
+    // Patch only the dynamic parts without destroying the whole modal
+    const modal = document.querySelector('.modal.wide');
+    if (!modal) return renderEntryModal();
+    const c = cropById(entryEditState.cropId);
+    const hd = expectedHarvest(c, entryEditState.sowDate);
+    const preview = modal.querySelector('.harvest-preview');
+    if (preview && hd) {
+      const d = daysUntil(hd);
+      const extra = !entryEditState.harvestedDate
+        ? (d < 0 ? `<span style="color:var(--red)">(${Math.abs(d)}d over tijd)</span>`
+          : d === 0 ? '<span style="color:var(--yellow)">(vandaag!)</span>'
+          : `<span style="color:var(--text3)">(${d}d)</span>`)
+        : '';
+      preview.innerHTML = `🗓 Verwachte oogst: <strong>${fmtDate(hd)}</strong> ${extra}`;
+    }
+    // Update status badge
+    const badge = modal.querySelector('.status-badge');
+    if (badge) badge.outerHTML = statusBadge(entryEditState);
+  }
+}
+
+function updateAddForm(k, v) {
+  addState.form[k] = v;
+  if (k === 'sowDate' || k === 'method') {
+    // Patch only the dynamic parts
+    const modal = document.querySelector('.modal.wide');
+    if (!modal) return renderAddModal();
+    const c = addState.cropId ? cropById(addState.cropId) : null;
+    if (!c) return;
+    const f = addState.form;
+    // Update method buttons
+    modal.querySelectorAll('.method-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.includes('Binnen') ? f.method === 'indoor' : f.method === 'outdoor');
+    });
+    // Update harvest preview
+    const preview = modal.querySelector('.harvest-preview');
+    const hd = expectedHarvest(c, f.sowDate);
+    if (preview && hd) {
+      preview.innerHTML = `🗓 Verwachte oogst: <strong>${fmtDate(hd)}</strong> <span style="color:var(--text3)">(~${c.days} dagen)</span>`;
+    }
+    // Update outside readiness hint
+    const hint = modal.querySelector('.outside-hint');
+    if (hint && f.method !== 'outdoor' && c.out && c.out.length) {
+      const mockEntry = { sowDate: f.sowDate, method: f.method, transplantedDate: '', harvestedDate: '' };
+      const info = outsideReadiness(mockEntry, c);
+      if (info) {
+        const style = info.daysLeft <= 0 ? 'background:rgba(240,192,64,.18);border:1px solid rgba(240,192,64,.5);color:var(--yellow)'
+          : info.daysLeft <= 7 ? 'background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);color:#c8a030'
+          : 'background:rgba(126,200,160,.08);border:1px solid rgba(126,200,160,.2);color:var(--text3)';
+        const txt = info.daysLeft <= 0 ? '☀️ Kan nu al naar buiten!'
+          : `🏠→☀️ Kan buiten vanaf: <strong style="color:var(--yellow)">${info.monthName}${info.year !== CUR_YEAR ? ' ' + info.year : ''}</strong> (${info.daysLeft} dagen)`;
+        hint.style.cssText = `border-radius:8px;padding:10px 12px;font-size:12px;margin-top:6px;${style}`;
+        hint.innerHTML = txt;
+      }
+    }
+  }
+}
+function saveEntry() {
+  const idx = state.entries.findIndex(e => e.id === entryEditState.id);
+  if (idx >= 0) {
+    const prevEntry = state.entries[idx];
+    const { confirmDelete, ...data } = entryEditState;
+    state.entries[idx] = data;
+    saveEntries();
+    closeModals();
+    // If a harvest date was just added, jump straight to geschiedenis
+    const justHarvested = !prevEntry.harvestedDate && data.harvestedDate;
+    if (justHarvested) {
+      switchTab('geschiedenis');
+      notify('🧺 Geoogst! Toegevoegd aan geschiedenis.');
+    } else {
+      render();
+      notify('✓ Wijzigingen opgeslagen!');
+    }
+  }
+}
+function deleteEntry(id) {
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveEntries();
+  closeModals();
+  render();
+  notify('Gewas verwijderd');
+}
+
+// ════════════════════════════════════════════════════════
+//  GESCHIEDENIS TAB
+// ════════════════════════════════════════════════════════
+function renderGeschiedenis() {
+  const harvested = state.entries.filter(e => e.harvestedDate);
+
+  if (harvested.length === 0) {
+    return `<div class="empty">
+      <div class="empty-icon">📖</div>
+      <h3>Nog geen oogsten geregistreerd</h3>
+      <p>Als je een gewas markeert als geoogst in je zaailijst, verschijnt het hier.</p>
+      <button class="add-btn" onclick="switchTab('logboek')">Naar mijn zaailijst →</button>
+    </div>`;
+  }
+
+  // ── stats ──
+  const totalHarvests = harvested.length;
+  const uniqueCrops = new Set(harvested.map(e => e.cropId)).size;
+  const durations = harvested.map(e => {
+    if (!e.sowDate || !e.harvestedDate) return null;
+    return Math.round((new Date(e.harvestedDate) - new Date(e.sowDate)) / 86400000);
+  }).filter(d => d !== null);
+  const avgDays = durations.length ? Math.round(durations.reduce((a,b)=>a+b,0)/durations.length) : 0;
+
+  // ── year filter options ──
+  const years = [...new Set(harvested.map(e => new Date(e.harvestedDate).getFullYear()))].sort((a,b)=>b-a);
+  const yearOptions = ['alle', ...years].map(y =>
+    `<button class="filter-btn${state.geschYear==y?' active':''}" onclick="setGeschYear('${y}')">${y==='alle'?'Alle jaren':y}</button>`
+  ).join('');
+
+  // ── crop filter ──
+  const cropOptions = `<input class="search-input" style="flex:1 1 150px" placeholder="🔍 Filter op gewas…" value="${state.geschCrop}" oninput="setGeschCrop(this.value)">`;
+
+  // ── filter entries ──
+  let filtered = harvested;
+  if (state.geschYear !== 'alle') filtered = filtered.filter(e => new Date(e.harvestedDate).getFullYear() == state.geschYear);
+  if (state.geschCrop.trim()) {
+    const q = state.geschCrop.toLowerCase();
+    filtered = filtered.filter(e => { const c = cropById(e.cropId); return c && c.name.toLowerCase().includes(q); });
+  }
+
+  // ── group by year → month ──
+  const grouped = {};
+  filtered.forEach(e => {
+    const d = new Date(e.harvestedDate);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    if (!grouped[y]) grouped[y] = {};
+    if (!grouped[y][m]) grouped[y][m] = [];
+    grouped[y][m].push(e);
+  });
+
+  const yearBlocks = Object.keys(grouped).sort((a,b)=>b-a).map(year => {
+    const monthBlocks = Object.keys(grouped[year]).sort((a,b)=>b-a).map(month => {
+      const entries = grouped[year][month].sort((a,b) => new Date(b.harvestedDate) - new Date(a.harvestedDate));
+      const cards = entries.map(e => {
+        const c = cropById(e.cropId);
+        if (!c) return '';
+        const dur = e.sowDate ? Math.round((new Date(e.harvestedDate) - new Date(e.sowDate)) / 86400000) : null;
+        return `<div class="gesch-card" onclick="openEntryModal('${e.id}')">
+          <span style="font-size:28px;min-width:34px">${c.emoji}</span>
+          <div class="gesch-card-info">
+            <div class="gesch-card-name">${c.name}${e.location ? ` <span style="font-size:11px;color:var(--text3);font-weight:400">· 📍 ${e.location}</span>` : ''}</div>
+            <div class="gesch-dates">
+              ${e.sowDate ? `<span class="gesch-date">🌱 Gezaaid: <strong>${fmtDate(e.sowDate)}</strong></span>` : ''}
+              ${e.transplantedDate ? `<span class="gesch-date">🌿 Uitgeplant: <strong>${fmtDate(e.transplantedDate)}</strong></span>` : ''}
+              <span class="gesch-date">🧺 Geoogst: <strong style="color:var(--red)">${fmtDate(e.harvestedDate)}</strong></span>
+              ${e.amount ? `<span class="gesch-date">📦 Aantal: <strong>${e.amount} stuks</strong></span>` : ''}
+            </div>
+            ${e.notes ? `<div class="gesch-notes">"${e.notes}"</div>` : ''}
+          </div>
+          ${dur !== null ? `<div class="gesch-duration"><div class="gesch-duration-num">${dur}</div><div class="gesch-duration-label">dagen</div></div>` : ''}
+        </div>`;
+      }).join('');
+      return `<div class="gesch-month-block">
+        <div class="gesch-month-label">${MONTH_NAMES[month-1]}</div>
+        ${cards}
+      </div>`;
+    }).join('');
+
+    return `<div class="gesch-year-block">
+      <div class="gesch-year-heading">${year}</div>
+      ${monthBlocks}
+    </div>`;
+  }).join('');
+
+  const noResults = filtered.length === 0
+    ? `<div class="empty" style="padding:40px 0"><div class="empty-icon" style="font-size:36px">🔍</div><p>Geen oogsten gevonden met deze filters.</p></div>`
+    : '';
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="logboek-title" style="font-family:'Playfair Display',serif;font-size:20px;color:var(--green)">Oogstgeschiedenis</div>
+        <div class="logboek-sub">${totalHarvests} oogst${totalHarvests!==1?'en':''} · ${uniqueCrops} verschillende gewassen</div>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><div class="stat-num">${totalHarvests}</div><div class="stat-label">🧺 Totaal geoogst</div></div>
+      <div class="stat-box"><div class="stat-num">${uniqueCrops}</div><div class="stat-label">🌱 Gewassen geteeld</div></div>
+      <div class="stat-box"><div class="stat-num">${avgDays || '—'}</div><div class="stat-label">📅 Gem. groeidagen</div></div>
+    </div>
+    <div class="gesch-filter-row">${cropOptions}${yearOptions}</div>
+    ${noResults || yearBlocks}`;
+}
+
+function setGeschYear(y) { state.geschYear = y; render(); }
+function setGeschCrop(v) { state.geschCrop = v; render(); }
+
+// ════════════════════════════════════════════════════════
+//  EVENT ATTACHMENTS
+// ════════════════════════════════════════════════════════
+function attachListeners() { /* onclick attributes handle everything */ }
+
+// ── Global handlers ───────────────────────────────────
+function selectMonth(m) { state.selectedMonth = m; render(); }
+function setCategory(cat) { state.category = cat; render(); }
+function setSearch(v) {
+  state.search = v;
+  clearTimeout(window._searchTimer);
+  window._searchTimer = setTimeout(() => renderSearchResults(), 150);
+}
+
+function renderSearchResults() {
+  // Only re-render the cards section, not the whole page
+  const resultsEl = document.getElementById('gewassen-results');
+  if (resultsEl) {
+    const filtered = filterCrops();
+    resultsEl.innerHTML = filtered.length === 0
+      ? `<div class="empty"><div class="empty-icon">🔍</div><h3>Geen gewassen gevonden</h3><p>Probeer een andere zoekterm.</p></div>`
+      : `<div class="cards">${filtered.map(renderCropCard).join('')}</div>`;
+  } else {
+    render();
+  }
+}
+
+function setGeschCrop(v) {
+  state.geschCrop = v;
+  clearTimeout(window._geschTimer);
+  window._geschTimer = setTimeout(() => {
+    const el = document.activeElement;
+    const pos = el ? el.selectionStart : null;
+    render();
+    // Restore focus to the search input
+    const inputs = document.querySelectorAll('.search-input');
+    inputs.forEach(inp => {
+      if (inp.placeholder.includes('Filter')) {
+        inp.focus();
+        if (pos !== null) try { inp.setSelectionRange(pos, pos); } catch(e) {}
+      }
+    });
+  }, 150);
+}
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
+try {
+  render();
+} catch(e) {
+  document.getElementById('app').innerHTML = `
+    <div style="padding:30px;color:#e07070;font-family:sans-serif;">
+      <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">Laad fout</div>
+      <div style="font-size:13px;opacity:.7;">${e.message}</div>
+    </div>`;
+}
+
+// ── Service Worker voor offline gebruik ──
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'zaaikalender-v1';
+    const FILES = [self.location.pathname];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      ));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return resp;
+        }).catch(() => cached))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl, { scope: './' })
+    .then(() => console.log('✅ Offline modus actief'))
+    .catch(e => console.log('SW niet geregistreerd:', e.message));
+}
+</script>
+</body>
+</html>
